@@ -1,6 +1,7 @@
-const { set, httpGetByAppWithOptions } = require('./testApi.js');
+const { set, httpGetByAppWithOptions, httpDeleteByAppWithOptions } = require('./testApi.js');
 const app = require('../app');
 const mongoose = require('mongoose');
+const Set = require('../models/set')
 
 afterAll(done => {
     mongoose.connection.close()
@@ -66,31 +67,60 @@ describe('/sets/:setId GET', () => {
     })
 })
 
-describe.skip('/sets/:setId DELETE', () => {
+describe('/sets/:setId DELETE', () => {
     describe('correct request', () => {
         let response;
-        beforeEach(async () => {
-            await httpPost(app, '/sets', set);
-            const request = httpDelete(app, '/sets');
-            response = await setTokenAndMakeHttpRequest(app, request);
+        let setId;
+        beforeAll(async () => {
+            const newSet = new Set(set);
+            try {
+                const addedSet = await newSet.save();
+                setId = addedSet._id;
+            } catch(e) {
+                throw new Error(e);
+            }
+        })
+        beforeAll(async () => {
+            response = await httpDeleteByAppWithOptions(app, {
+                endpoint: `/sets/${setId}`,
+                isIncludeToken: true
+            })
         })
 
-        test('response body should be empty object', () => {
+        it('response body should be empty object', () => {
             expect(response.body).toEqual({});
         })
 
-        test('response status should be 200', () => {
+        it('response status should be 200', () => {
             expect(response.status).toEqual(200)
         })
 
-        test('response type should contain json', () => {
+        it('response type should contain json', () => {
             expect(/json/.test(response.headers['content-type']))
         });
     })
 
-    // describe('wrong request', () => {
-    //     describe('request with empty :setId param', () => {
-            
-    //     })
-    // })
+    describe('wrong request', () => {
+        describe('request with wrong :setId param', () => {
+            let response;
+            beforeAll(async () => {
+                response = await httpDeleteByAppWithOptions(app, {
+                    endpoint: '/sets/3213213wrongparam123123',
+                    isIncludeToken: true
+                })
+            })
+
+            it('response status should be 400', () => {
+                expect(response.status).toEqual(400);
+            })
+
+            it('response type should contain json', () => {
+                expect(/json/.test(response.headers['content-type']));
+            });
+
+            it('response body should contain message', () => {
+                expect(response.body.hasOwnProperty('message')).toEqual(true);
+            })
+        })
+    })
 })

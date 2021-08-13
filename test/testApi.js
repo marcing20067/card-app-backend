@@ -36,13 +36,13 @@ const httpPostByAppWithOptions = async (app, options) => {
     return request;
 }
 
-const httpDeleteByAppWithOptions = (app, options) => {
+const httpDeleteByAppWithOptions = async (app, options) => {
     const { endpoint, isIncludeToken } = options;
     let request = httpRequestByApp(app)
         .delete(endpoint)
 
     if (isIncludeToken) {
-        const token = getTokenByApp(app);
+        const token = await getTokenByApp(app);
         request = request.set('Authorization', 'Bearer ' + token)
     }
     return request;
@@ -77,7 +77,7 @@ const set = {
         group4: 0,
         group5: 0
     },
-    creator: ''
+    creator: 'creator'
 }
 
 module.exports = {

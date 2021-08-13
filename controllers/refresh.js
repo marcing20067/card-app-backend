@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
 
-exports.refreshToken = (req, res, next) => {
+const createAndSetRefreshToken = (req, res, next) => {
     const token = req.body.refreshToken;
 
     try {
@@ -21,3 +21,5 @@ exports.refreshToken = (req, res, next) => {
         res.status(401).send({ message: 'Invalid refresh token' })
     }
 }
+
+exports.refreshToken = createAndSetRefreshToken;

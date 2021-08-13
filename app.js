@@ -3,7 +3,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const config = require('./config/config.js');
-const setAppRoutes = require('./routes.js');
+const routes = require('./routes.js');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
@@ -22,6 +22,6 @@ app.use(cors({
     origin: 'http://localhost:4200',
 }))
 
-setAppRoutes(app);
+app.use(routes)
 
 module.exports = app;
