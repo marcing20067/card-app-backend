@@ -1,8 +1,5 @@
 const Set = require('../models/set.js');
-
-const sendInvalidReqDataError = (res) => {
-    res.status(400).send({ message: 'Invalid request data' })
-}
+const setsErrorMessages = require('../errorTexts/controllersTexts/sets.js');
 
 exports.getSets = (req, res, next) => {
     const userId = req.userData.id;
@@ -12,7 +9,9 @@ exports.getSets = (req, res, next) => {
             if (!sets) throw new Error;
             res.send(sets)
         })
-        .catch(() => sendInvalidReqDataError(res))
+        .catch(() => {
+            res.status(400).send({ message: setsErrorMessages.invalidData })
+        })
 }
 
 exports.getSet = (req, res, next) => {
@@ -21,10 +20,12 @@ exports.getSet = (req, res, next) => {
 
     Set.findOne({ _id: setId, creator: userId })
         .then(set => {
-            if (!set) throw new Error;
+            if (!set) return res.status(400).send({ message: setsErrorMessages.invalidData });
             res.send(set)
         })
-        .catch(() => sendInvalidReqDataError(res))
+        .catch((err) => {
+            res.status(400).send({ message: setsErrorMessages.invalidData })
+        })
 }
 
 exports.deleteSet = (req, res, next) => {
@@ -35,7 +36,9 @@ exports.deleteSet = (req, res, next) => {
         .then(resData => {
             res.send({})
         })
-        .catch(() => sendInvalidReqDataError(res))
+        .catch(() => {
+            res.status(400).send({ message: setsErrorMessages.invalidData })
+        })
 }
 
 exports.updateSet = (req, res, next) => {
@@ -45,7 +48,9 @@ exports.updateSet = (req, res, next) => {
 
     Set.updateOne({ _id: setId, creator: userId }, newSet)
         .then(updatedSet => { })
-        .catch(() => sendInvalidReqDataError(res))
+        .catch(() => {
+            res.status(400).send({ message: setsErrorMessages.invalidData })
+        })
 }
 
 exports.addSet = (req, res, next) => {
@@ -60,5 +65,7 @@ exports.addSet = (req, res, next) => {
         .then((addedSet) => {
             res.status(201).send(addedSet);
         })
-        .catch(() => sendInvalidReqDataError(res))
+        .catch(() => {
+            res.status(400).send({ message: setsErrorMessages.invalidData })
+        })
 }

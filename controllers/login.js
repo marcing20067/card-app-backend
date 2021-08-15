@@ -1,6 +1,7 @@
 const User = require('../models/user.js');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
+const loginErrorMessages = require('../errorTexts/controllersTexts/login.js')
 
 const login = async (req, res, next) => {
     const user = {
@@ -11,9 +12,7 @@ const login = async (req, res, next) => {
     try {
         const findedUser = await User.findOne(user)
 
-        if (!findedUser) {
-            return res.status(400).send({ message: 'User does not exist' });
-        }
+        if (!findedUser) return res.status(400).send({ message: loginErrorMessages.invalidData });
 
         const userDataForToken = {
             id: findedUser._id,
@@ -31,8 +30,8 @@ const login = async (req, res, next) => {
             accessToken,
             accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
         })
-    } catch (error) {
-        res.status(400).send({ message: '' })
+    } catch { 
+        // all cases are handled by line 15
     }
 }
 

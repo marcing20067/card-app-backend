@@ -7,15 +7,23 @@ const validUserData = {
     password: 'password',
 }
 
+const validUserData2 = {
+    username: 'adminnn',
+    password: 'newPassword'
+}
+
 const httpRequestByApp = (app) => {
     return supertest(app);
 }
 
 const httpGetByAppWithOptions = async (app, options) => {
-    const { endpoint, isIncludeToken } = options;
+    const { endpoint, isIncludeToken, cookie } = options;
     let request = httpRequestByApp(app)
         .get(endpoint);
 
+    if (cookie) {
+        request = request.set('Cookie', [cookie])
+    }
     if (isIncludeToken) {
         const authToken = await getTokenByApp(app);
         request = request.set('Authorization', 'Bearer ' + authToken);
@@ -83,6 +91,7 @@ const set = {
 module.exports = {
     httpRequestByApp,
     validUserData,
+    validUserData2,
     httpGetByAppWithOptions,
     httpPostByAppWithOptions,
     httpDeleteByAppWithOptions,

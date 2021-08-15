@@ -1,24 +1,24 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
+const refreshErrorMessages = require('../errorTexts/controllersTexts/refresh.js');
 
-const createAndSetRefreshToken = (req, res, next) => {
-    const token = req.body.refreshToken;
+const createAndSetRefreshToken = async (req, res, next) => {
+    const token = req.cookies.refreshToken;
 
     try {
         const userData = jwt.verify(token, config.REFRESH_TOKEN)
         const newAccessToken = jwt.sign(userData, config.ACCESS_TOKEN);
         const newRefreshToken = jwt.sign(userData, config.REFRESH_TOKEN);
 
-        res.cookie('Authentication', newAccessToken, {
-            maxAge: config.ACCESS_TOKEN_EXPIRESIN,
+        res.cookie('refreshToken', newRefreshToken, {
+            maxAge: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS,
             httpOnly: true
         });
 
-        res.send({ refreshToken: newRefreshToken })
+        res.status(201).send({ accessToken: newAccessToken, accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS, })
     }
     catch (error) {
-        console.log(error);
-        res.status(401).send({ message: 'Invalid refresh token' })
+        res.status(400).send({ message: refreshErrorMessages.invalidData })
     }
 }
 

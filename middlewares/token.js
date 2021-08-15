@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
+const tokenErrorMessage = require('../errorTexts/middlewaresTexts/token.js')
 
 const checkTokenValidityAndSetUserData = (req, res, next) => {
     try {
@@ -8,7 +9,7 @@ const checkTokenValidityAndSetUserData = (req, res, next) => {
         req.userData = userData;
         next();
     } catch (error) {
-        res.status(401).send({ message: 'Invalid Authorization' })
+        res.status(401).send({ message: tokenErrorMessage.invalidData })
     }
 }
 
