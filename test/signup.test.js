@@ -1,4 +1,4 @@
-const { httpPostByAppWithOptions } = require('./testApi.js');
+const { httpPostByAppWithOptions, newUserData } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
@@ -17,15 +17,19 @@ describe('/signup POST', () => {
             })
     }
 
-    const newUserData = {
-        username: 'newUsername',
-        password: 'newPassword'
-    }
-
     beforeAll(async () => {
-        await User.deleteOne(newUserData)
+        const userId = await findUserAndReturnUserIdByUserData(newUserData);
+        await deleteUserById(userId);
     })
 
+    const findUserAndReturnUserIdByUserData = async (userData) => {
+        const findedUser = await User.findOne(userData);
+        return findedUser._id;
+    }
+
+    const deleteUserById = async (id) => {
+        await User.deleteOne({ _id: id });
+    }
 
     describe('correct request', () => {
         let response;
@@ -36,7 +40,7 @@ describe('/signup POST', () => {
 
         afterAll(async () => {
             const createdUser = response.body;
-            await User.deleteOne({ _id: createdUser._id })
+            await deleteUserById(createdUser._id)
         })
 
         it('status should be 201', () => {
@@ -47,7 +51,7 @@ describe('/signup POST', () => {
             expect(/json/.test(response.headers['content-type']))
         })
 
-        it('response body should contain created user', () => {
+        it('response body should contain user', () => {
             const createdUser = response.body;
             expect(createdUser.hasOwnProperty('_id'))
             expect(createdUser.username).toEqual(newUserData.username);
@@ -189,9 +193,15 @@ describe('/signup POST', () => {
 
         describe('username is already taken', () => {
             let response;
+
             beforeAll(async () => {
-                response = await signupRequest(newUserData);
-            });
+                await createUser()
+            })
+
+            const createUser = async () => {
+                const newUser = new User(newUserData);
+                await newUser.save();
+            }
 
             beforeAll(async () => {
                 response = await signupRequest(newUserData);

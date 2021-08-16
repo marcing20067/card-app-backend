@@ -64,7 +64,8 @@ describe('/login POST', () => {
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('User does not exist.');
+                const message = response.body.message;
+                expect(message).toEqual('Username is required.');
             })
         })
 
@@ -86,11 +87,12 @@ describe('/login POST', () => {
                 expect(response.body.hasOwnProperty('message')).toEqual(true);
             })
             it('message should be correct"', () => {
-                expect(response.body.message).toEqual('User does not exist.');
+                const message = response.body.message;
+                expect(message).toEqual('Password is required.');
             })
         })
 
-        describe("request with invalid username", () => {
+        describe('request with invalid username', () => {
             let response;
             const userData = {
                 username: '',
@@ -110,7 +112,8 @@ describe('/login POST', () => {
                 expect(response.body.hasOwnProperty('message')).toEqual(true);
             })
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('User does not exist.')
+                const message = response.body.message;
+                expect(message).toEqual('User does not exist.')
             })
         })
 
@@ -134,7 +137,8 @@ describe('/login POST', () => {
                 expect(response.body.hasOwnProperty('message')).toEqual(true);
             })
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('User does not exist.')
+                const message = response.body.message;
+                expect(message).toEqual('User does not exist.')
             })
         })
     })

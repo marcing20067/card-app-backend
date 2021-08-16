@@ -9,6 +9,13 @@ const login = async (req, res, next) => {
         password: req.body.password,
     }
 
+    if(user.username === undefined) {
+        return res.status(400).send({ message: loginErrorMessages.usernameRequired});
+    }
+    if(user.password === undefined) {
+        return res.status(400).send({ message: loginErrorMessages.passwordRequired});
+    }
+
     try {
         const findedUser = await User.findOne(user)
 

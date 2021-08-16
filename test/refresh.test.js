@@ -17,17 +17,19 @@ const refreshRequest = (cookie) => {
 describe('/refresh POST', () => {
     describe('correct request', () => {
         let response;
-        let refreshTokenCookie;
         beforeAll(async () => {
-            const loginResponse = await httpPostByAppWithOptions(app, {
+            const refreshTokenCookie = await loginRequestAndReturnRefreshTokenCookie();
+            response = await refreshRequest(refreshTokenCookie);
+        })
+
+        const loginRequestAndReturnRefreshTokenCookie = async () => {
+            const response = await httpPostByAppWithOptions(app, {
                 endpoint: '/login',
                 data: validUserData
             })
-            refreshTokenCookie = loginResponse.header['set-cookie'][0].split(';')[0]
-        })
-        beforeAll(async () => {
-            response = await refreshRequest(refreshTokenCookie);
-        })
+            const refreshTokenCookie = response.header['set-cookie'][0].split(';')[0]
+            return refreshTokenCookie;
+        }
 
         it('status should be 201', () => {
             expect(response.status).toEqual(201)
@@ -37,17 +39,14 @@ describe('/refresh POST', () => {
             expect(/json/.test(response.headers['content-type']))
         })
 
-        it('response body should contain access token', () => {
+        it('response body should contain access token data', () => {
             expect(response.body.hasOwnProperty('accessToken'));
-        })
-
-        it('response body should contain access token expires in', () => {
             expect(response.body.hasOwnProperty('accessTokenExpiresIn'))
         })
     })
 
     describe('invalid request', () => {
-        describe('refresh token doesnt exist in cookie', () => {
+        describe('refresh token doesn\'t exist in cookie', () => {
             beforeAll(async () => {
                 response = await refreshRequest();
             })
@@ -64,7 +63,8 @@ describe('/refresh POST', () => {
                 expect(response.body.message.hasOwnProperty('message'))
             })
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Invalid refresh token.');
+                const message = response.body.message;
+                expect(message).toEqual('Invalid refresh token.');
             })
         })
     })
