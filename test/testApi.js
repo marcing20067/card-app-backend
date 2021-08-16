@@ -29,52 +29,26 @@ const set = {
     creator: 'creator'
 }
 
-const httpGetByAppWithOptions = async (app, options) => {
-    const { endpoint, isIncludeToken, cookie } = options;
-    let request = httpRequestByApp(app)
-        .get(endpoint);
+const makeHttpReqByAppWithOptions = async (app, options) => {
+    const { method, endpoint, cookie, isIncludeToken, data, customToken } = options;
+    // Key of object must be lowercase
+    const methodKey = options.method.toLowerCase();
+    
+    let request = httpRequestByApp(app)[methodKey](endpoint);
+
+    if(method === 'POST') {
+        request = request.send(data);
+    }
 
     if (cookie) {
         request = request.set('Cookie', cookie)
     }
 
     if (isIncludeToken) {
-        const authToken = await getTokenByApp(app);
+        const authToken = customToken || await getTokenByApp(app);
         request = request.set('Authorization', 'Bearer ' + authToken);
     }
-    return request;
-}
 
-const httpPostByAppWithOptions = async (app, options) => {
-    const { endpoint, isIncludeToken, data, cookie } = options;
-    let request = httpRequestByApp(app)
-        .post(endpoint)
-        .send(data)
-
-    if (cookie) {
-        request = request.set('Cookie', cookie)
-    }
-
-    if (isIncludeToken) {
-        const token = await getTokenByApp(app);
-        request = request.set('Authorization', 'Bearer ' + token)
-    }
-    return request;
-}
-
-const httpDeleteByAppWithOptions = async (app, options) => {
-    const { endpoint, isIncludeToken, cookie } = options;
-    let request = httpRequestByApp(app)
-        .delete(endpoint)
-        
-    if (cookie) {
-        request = request.set('Cookie', cookie)
-    }
-
-    if (isIncludeToken) {
-        const token = await getTokenByApp(app);
-        request = request.set('Authorization', 'Bearer ' + token)
-    }
     return request;
 }
 
@@ -82,7 +56,8 @@ let token;
 
 const getTokenByApp = async (app) => {
     if (!token) {
-        const response = await httpPostByAppWithOptions(app, {
+        const response = await makeHttpReqByAppWithOptions(app, {
+            method: 'POST',
             endpoint: '/login',
             data: validUserData
         });
@@ -91,13 +66,10 @@ const getTokenByApp = async (app) => {
     return token;
 }
 
-
 module.exports = {
+    makeHttpReqByAppWithOptions,
     httpRequestByApp,
     validUserData,
     newUserData,
     set,
-    httpGetByAppWithOptions,
-    httpPostByAppWithOptions,
-    httpDeleteByAppWithOptions,
 }

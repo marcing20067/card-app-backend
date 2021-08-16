@@ -1,4 +1,4 @@
-const { httpPostByAppWithOptions, validUserData, httpGetByAppWithOptions } = require('./testApi.js');
+const { validUserData, makeHttpReqByAppWithOptions } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 
@@ -8,13 +8,14 @@ afterAll(done => {
 })
 
 const refreshRequest = (cookie) => {
-    return httpGetByAppWithOptions(app, {
+    return makeHttpReqByAppWithOptions(app, {
+        method: 'GET',
         endpoint: '/refresh',
-        cookie
+        cookie: cookie,
     });
 }
 
-describe('/refresh POST', () => {
+describe('/refresh GET', () => {
     describe('correct request', () => {
         let response;
         beforeAll(async () => {
@@ -23,7 +24,8 @@ describe('/refresh POST', () => {
         })
 
         const loginRequestAndReturnRefreshTokenCookie = async () => {
-            const response = await httpPostByAppWithOptions(app, {
+            const response = await makeHttpReqByAppWithOptions(app, {
+                method: 'POST',
                 endpoint: '/login',
                 data: validUserData
             })

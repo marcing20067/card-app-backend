@@ -1,4 +1,4 @@
-const { set, httpGetByAppWithOptions, httpDeleteByAppWithOptions, validUserData, httpRequestByApp } = require('./testApi.js');
+const { set, validUserData, makeHttpReqByAppWithOptions } = require('./testApi.js');
 const app = require('../app');
 const mongoose = require('mongoose');
 const Set = require('../models/set');
@@ -17,7 +17,8 @@ describe('/sets GET', () => {
         })
 
         const setsRequest = () => {
-            return httpGetByAppWithOptions(app, {
+            return makeHttpReqByAppWithOptions(app, {
+                method: 'GET',
                 endpoint: '/sets',
                 isIncludeToken: true
             })
@@ -41,9 +42,11 @@ describe('/sets GET', () => {
             })
 
             const setsRequestWithCustomToken = async (token) => {
-                return httpRequestByApp(app)
-                    .get('/sets')
-                    .set('Authorization', 'Bearer' + token);
+                return makeHttpReqByAppWithOptions(app, {
+                    method: 'GET',
+                    endpoint: '/sets',
+                    customToken: token,
+                })
             }
 
             it('response status should be 401', () => {
@@ -63,7 +66,8 @@ describe('/sets GET', () => {
 
     describe('/sets/:setId GET', () => {
         const setRequestBySetId = (setId) => {
-            return httpGetByAppWithOptions(app, {
+            return makeHttpReqByAppWithOptions(app, {
+                method: 'GET',
                 endpoint: `/sets/${setId}`,
                 isIncludeToken: true
             });
@@ -137,7 +141,8 @@ describe('/sets GET', () => {
     })
     describe('/sets/:setId DELETE', () => {
         const deleteSetBySetId = (setId) => {
-            return httpDeleteByAppWithOptions(app, {
+            return makeHttpReqByAppWithOptions(app, {
+                method: 'DELETE',
                 endpoint: `/sets/${setId}`,
                 isIncludeToken: true
             });

@@ -1,4 +1,4 @@
-const { httpPostByAppWithOptions, newUserData } = require('./testApi.js');
+const { makeHttpReqByAppWithOptions, newUserData } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
@@ -10,8 +10,9 @@ afterAll(done => {
 
 describe('/signup POST', () => {
     const signupRequest = (userData) => {
-        return httpPostByAppWithOptions(app,
+        return makeHttpReqByAppWithOptions(app,
             {
+                method: 'POST',
                 data: userData,
                 endpoint: '/signup'
             })
