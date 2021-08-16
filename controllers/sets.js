@@ -6,7 +6,6 @@ exports.getSets = (req, res, next) => {
 
     Set.find({ creator: userId })
         .then(sets => {
-            if (!sets) throw new Error;
             res.send(sets)
         })
         .catch(() => {

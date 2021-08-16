@@ -2,15 +2,12 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const config = require('./config/config.js');
 const routes = require('./routes.js');
-const mongoose = require('mongoose');
 const cors = require('cors');
-
+const connectDB = require('./db.js');
 const app = express();
 
-mongoose.connect(`mongodb+srv://${config.DB_USERNAME}:${config.DB_PASSWORD}${config.DB_HOST}/${config.DB_NAME}?retryWrites=true&w=majority`, { useNewUrlParser: true, useUnifiedTopology: true })
-
+connectDB()
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
