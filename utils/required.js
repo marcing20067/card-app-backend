@@ -1,7 +1,3 @@
-const createMessage = (propertyName) => {
-    return `${propertyName} is required.`;
-}
-
 const isAnyPropertyUndefinedAndSendError = (res, object) => {
     for (const property in object) {
         if (object[property] === undefined) {
@@ -11,6 +7,10 @@ const isAnyPropertyUndefinedAndSendError = (res, object) => {
         }
     }
     return false;
+}
+
+const createMessage = (propertyName) => {
+    return `${propertyName} is required.`;
 }
 
 module.exports = isAnyPropertyUndefinedAndSendError;
