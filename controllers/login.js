@@ -1,9 +1,8 @@
 const User = require('../models/user.js');
-const jwt = require('jsonwebtoken');
-const config = require('../config/config.js');
 const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
 const errorTexts = require('../errorTexts/errorTexts.js');
 const loginInvalidDataErrorText = errorTexts.controllers.login.invalidData;
+const token = require('../utils/token.js');
 
 exports.login = async (req, res, next) => {
     const userData = {
@@ -22,9 +21,9 @@ exports.login = async (req, res, next) => {
             id: findedUser._id,
         }
 
-        const tokenData = createTokenData(userDataForToken);
+        const tokenData = token.createTokenData(userDataForToken);
 
-        setRefreshTokenInCookie(res, tokenData);
+        token.setRefreshTokenInCookie(res, tokenData);
 
         res.send({
             accessToken: tokenData.accessToken,
@@ -41,25 +40,4 @@ const findUser = async (userData) => {
         throw new Error;
     }
     return findedUser;
-}
-
-const createTokenData = (payload) => {
-    const accessToken = jwt.sign(payload, config.ACCESS_TOKEN, { expiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS });
-    const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN, { expiresIn: config.REFRESH_TOKEN_EXPIRES });
-
-    const tokenData = {
-        accessToken: accessToken,
-        accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
-        refreshToken: refreshToken,
-        refreshTokenExpiresIn: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
-    }
-
-    return tokenData;
-}
-
-const setRefreshTokenInCookie = (res, tokenData) => {
-    res.cookie('refreshToken', tokenData.refreshToken, {
-        maxAge: tokenData.refreshTokenExpiresIn,
-        httpOnly: true
-    })
 }
