@@ -29,13 +29,26 @@ const validSet = {
     creator: 'creator'
 }
 
+const responseStatusShouldBe = (response, status) => {
+    expect(response.status).toEqual(status);
+}
+
+const responseTypeShouldContainJson = (response) => {
+    const contentType = response.headers['content-type'];
+    expect(/json/.test(contentType))
+}
+
+const responseBodyShouldContainProperty = (response, property) => {
+    expect(response.body.hasOwnProperty(property));
+}
+
 const makeHttpRequest = async (app, options) => {
-    const { method, endpoint, customCookie , isIncludeToken, data, customToken } = options;
+    const { method, endpoint, customCookie, isIncludeToken, data, customToken } = options;
     const lowercaseMethod = options.method.toLowerCase();
-    
+
     let request = httpRequest(app)[lowercaseMethod](endpoint);
 
-    if(method === 'POST' || method === 'PUT') {
+    if (method === 'POST' || method === 'PUT') {
         request = request.send(data);
     }
 
@@ -66,9 +79,11 @@ const getTokenByApp = async (app) => {
 }
 
 module.exports = {
-    makeHttpRequest,
-    httpRequest,
-    validUser,
     newUser,
+    validUser,
     validSet,
+    responseStatusShouldBe,
+    responseTypeShouldContainJson,
+    responseBodyShouldContainProperty,
+    makeHttpRequest,
 }

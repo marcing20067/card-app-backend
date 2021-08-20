@@ -1,4 +1,4 @@
-const { validUser, makeHttpRequest } = require('./testApi.js');
+const { validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 
@@ -37,12 +37,9 @@ describe('/refresh GET', () => {
             return refreshTokenCookie;
         }
 
-        it('status should be 201', () => {
-            expect(response.status).toEqual(201)
-        })
-
-        it('response type should contain json', () => {
-            expect(/json/.test(response.headers['content-type']))
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 201);
         })
 
         it('response body should contain access token data', () => {
@@ -57,17 +54,12 @@ describe('/refresh GET', () => {
                 response = await refreshRequest();
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.message.hasOwnProperty('message'))
-            })
             it('message should be correct', () => {
                 const message = response.body.message;
                 expect(message).toEqual('Invalid refresh token.');

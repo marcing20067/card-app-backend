@@ -1,4 +1,4 @@
-const { makeHttpRequest, newUser } = require('./testApi.js');
+const { makeHttpRequest, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, newUser } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
@@ -45,12 +45,9 @@ describe('/signup POST', () => {
             await deleteUser(createdUser._id)
         })
 
-        it('status should be 201', () => {
-            expect(response.status).toEqual(201)
-        })
-
-        it('response type should contain json', () => {
-            expect(/json/.test(response.headers['content-type']))
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 201);
         })
 
         it('response body should contain user', () => {
@@ -72,16 +69,10 @@ describe('/signup POST', () => {
                 response = await signupRequest(userData);
             });
 
-            it('status should be 400', () => {
-                expect(response.status).toEqual(400)
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct"', () => {
@@ -99,16 +90,10 @@ describe('/signup POST', () => {
                 response = await signupRequest(userData);
             });
 
-            it('status should be 400', () => {
-                expect(response.status).toEqual(400)
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -123,16 +108,10 @@ describe('/signup POST', () => {
                 response = await signupRequest(userData);
             });
 
-            it('status should be 400', () => {
-                expect(response.status).toEqual(400)
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct"', () => {
@@ -150,16 +129,10 @@ describe('/signup POST', () => {
                 response = await signupRequest(userData);
             });
 
-            it('status should be 400', () => {
-                expect(response.status).toEqual(400)
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -176,16 +149,10 @@ describe('/signup POST', () => {
                 response = await signupRequest(userData);
             });
 
-            it('status should be 400', () => {
-                expect(response.status).toEqual(400)
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -210,16 +177,10 @@ describe('/signup POST', () => {
                 response = await signupRequest(newUser);
             })
 
-            it('status should be 400', () => {
-                expect(response.status).toEqual(409)
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 409);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {

@@ -1,4 +1,4 @@
-const { validSet, validUser, makeHttpRequest } = require('./testApi.js');
+const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest } = require('./testApi.js');
 const app = require('../app');
 const mongoose = require('mongoose');
 const Set = require('../models/set');
@@ -24,12 +24,9 @@ describe('/sets GET', () => {
             })
         }
 
-        it('response type should include aplication/json', () => {
-            expect(/json/.test(response.headers['content-type']))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toEqual(200)
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 200);
         })
     })
     describe('wrong request', () => {
@@ -49,16 +46,10 @@ describe('/sets GET', () => {
                 })
             }
 
-            it('response status should be 401', () => {
-                expect(response.status).toEqual(401)
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
-            })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual('Invalid authorization.');
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 401);
+                responseBodyShouldContainProperty(response, 'message');
             })
         })
     })
@@ -98,12 +89,9 @@ describe('/sets/:setId GET', () => {
             response = await getSet(setId);
         })
 
-        it('response status should be 200', () => {
-            expect(response.status).toEqual(200)
-        })
-
-        it('response type should include aplication/json', () => {
-            expect(/json/.test(response.headers['content-type']))
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 200);
         })
 
         it('response body should be a set', () => {
@@ -122,16 +110,11 @@ describe('/sets/:setId GET', () => {
                 const wrongSetId = 'wrongSetId';
                 response = await getSet(wrongSetId);
             })
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400)
-            })
 
-            it('response type should include aplication/json', () => {
-                expect(/json/.test(response.headers['content-type']))
-            })
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -159,13 +142,10 @@ describe('/sets/:setId PUT', () => {
             response = await putSetRequest(setId, newSet);
         })
 
-        it('response status should be 200', () => {
-            expect(response.status).toEqual(200);
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 200);
         })
-
-        it('response type should contain json', () => {
-            expect(/json/.test(response.headers['content-type']));
-        });
 
         it('response body should contain set', () => {
             expect(response.body.hasOwnProperty('_id'));
@@ -184,16 +164,10 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(wrongSetId, newSet);
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-
-            it('response body should message', () => {
-                expect(response.body.hasOwnProperty('message'));
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -208,16 +182,10 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-
-            it('response body should message', () => {
-                expect(response.body.hasOwnProperty('message'));
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -232,16 +200,10 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-
-            it('response body should message', () => {
-                expect(response.body.hasOwnProperty('message'));
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -257,16 +219,10 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-
-            it('response body should message', () => {
-                expect(response.body.hasOwnProperty('message'));
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -282,16 +238,10 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-
-            it('response body should message', () => {
-                expect(response.body.hasOwnProperty('message'));
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -324,12 +274,9 @@ describe('/sets/:setId DELETE', () => {
             return addedSet;
         }
 
-        it('response body should be empty object', () => {
-            expect(response.body).toEqual({});
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toEqual(200)
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 200);
         })
 
         it('response type should contain json', () => {
@@ -345,16 +292,10 @@ describe('/sets/:setId DELETE', () => {
                 response = await deleteSet(wrongSetId);
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -382,20 +323,17 @@ describe('/sets/:setId POST', () => {
             response = await createSetRequest(validSet);
         })
 
-        it('response status should be 201', () => {
-            expect(response.status).toEqual(201);
+        it('basic correct request tests', () => {
+            responseTypeShouldContainJson(response);
+            responseStatusShouldBe(response, 201);
         })
 
-        it('response type should contain json', () => {
-            expect(/json/.test(response.headers['content-type']));
-        });
-
-        it('response body should set', () => {
-            expect(response.body.hasOwnProperty('_id'))
-            expect(response.body.hasOwnProperty('name'))
-            expect(response.body.hasOwnProperty('cards'))
-            expect(response.body.hasOwnProperty('stats'))
-            expect(response.body.hasOwnProperty('creator'))
+        it('response body should be set', () => {
+            responseBodyShouldContainProperty(response, '_id')
+            responseBodyShouldContainProperty(response, 'name')
+            responseBodyShouldContainProperty(response, 'cards')
+            responseBodyShouldContainProperty(response, 'stats')
+            responseBodyShouldContainProperty(response, 'creator')
         })
     })
 
@@ -403,19 +341,13 @@ describe('/sets/:setId POST', () => {
         describe('request with empty name', () => {
             let response;
             beforeAll(async () => {
-                response = await createSetRequest({...validSet, name: undefined});
+                response = await createSetRequest({ ...validSet, name: undefined });
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-    
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-    
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -426,19 +358,13 @@ describe('/sets/:setId POST', () => {
         describe('request with empty cards', () => {
             let response;
             beforeAll(async () => {
-                response = await createSetRequest({...validSet, cards: undefined});
+                response = await createSetRequest({ ...validSet, cards: undefined });
             })
-
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-    
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-    
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+           
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -449,19 +375,13 @@ describe('/sets/:setId POST', () => {
         describe('request with empty stats', () => {
             let response;
             beforeAll(async () => {
-                response = await createSetRequest({...validSet, stats: undefined});
+                response = await createSetRequest({ ...validSet, stats: undefined });
             })
-
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-    
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-    
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+            
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
@@ -470,22 +390,16 @@ describe('/sets/:setId POST', () => {
             })
         })
 
-        describe ('request with too short name', () => {
+        describe('request with too short name', () => {
             let response;
             beforeAll(async () => {
-                response = await createSetRequest({...validSet, name: 'nl'});
+                response = await createSetRequest({ ...validSet, name: 'nl' });
             })
-
-            it('response status should be 400', () => {
-                expect(response.status).toEqual(400);
-            })
-    
-            it('response type should contain json', () => {
-                expect(/json/.test(response.headers['content-type']));
-            });
-    
-            it('response body should contain message', () => {
-                expect(response.body.hasOwnProperty('message'))
+           
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
