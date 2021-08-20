@@ -1,7 +1,7 @@
 const Set = require('../models/set.js');
-const isAnyPropertyUndefinedAndSendErrorByResAndObject = require('../utils/required.js')
+const isAnyPropertyUndefinedAndSendError = require('../utils/required.js')
 const errorTexts = require('../errorTexts/errorTexts.js');
-const isShortErrorAndSendErrorByResAndMessage = require('../utils/short.js');
+const isShortErrorAndSendError = require('../utils/short.js');
 const invalidDataErrorText = errorTexts.invalidData;
 
 exports.getSets = async (req, res, next) => {
@@ -50,7 +50,7 @@ exports.updateSet = async (req, res, next) => {
     };
     const { setId } = req.params;
 
-    if (isAnyPropertyUndefinedAndSendErrorByResAndObject(res, newSet)) {
+    if (isAnyPropertyUndefinedAndSendError(res, newSet)) {
         return;
     }
 
@@ -72,7 +72,7 @@ exports.addSet = async (req, res, next) => {
         creator: userId
     };
 
-    if (isAnyPropertyUndefinedAndSendErrorByResAndObject(res, set)) {
+    if (isAnyPropertyUndefinedAndSendError(res, set)) {
         return;
     };
 
@@ -83,7 +83,7 @@ exports.addSet = async (req, res, next) => {
     } catch (error) {
         const nameErrorMessage = error.errors.name.properties.message;
         if(nameErrorMessage) {
-            if(isShortErrorAndSendErrorByResAndMessage(res, nameErrorMessage)) {
+            if(isShortErrorAndSendError(res, nameErrorMessage)) {
                 return;
             }
         }

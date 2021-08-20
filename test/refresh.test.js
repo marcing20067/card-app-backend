@@ -1,4 +1,4 @@
-const { validUserData, makeHttpRequest } = require('./testApi.js');
+const { validUser, makeHttpRequest } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 
@@ -32,7 +32,7 @@ describe('/refresh GET', () => {
         }
 
         const getRefreshTokenCookie = async () => {
-            const cookieResponse = await loginRequest(validUserData);
+            const cookieResponse = await loginRequest(validUser);
             const refreshTokenCookie = cookieResponse.header['set-cookie'][0].split(';')[0]
             return refreshTokenCookie;
         }

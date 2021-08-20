@@ -1,4 +1,4 @@
-const { makeHttpRequest, newUserData } = require('./testApi.js');
+const { makeHttpRequest, newUser } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
@@ -19,7 +19,7 @@ describe('/signup POST', () => {
     }
 
     beforeAll(async () => {
-        const user = await findUser(newUserData);
+        const user = await findUser(newUser);
         const userId = user._id;
         await deleteUser(userId);
     })
@@ -37,7 +37,7 @@ describe('/signup POST', () => {
         let response;
 
         beforeAll(async () => {
-            response = await signupRequest(newUserData);
+            response = await signupRequest(newUser);
         })
 
         afterAll(async () => {
@@ -56,8 +56,8 @@ describe('/signup POST', () => {
         it('response body should contain user', () => {
             const createdUser = response.body;
             expect(createdUser.hasOwnProperty('_id'))
-            expect(createdUser.username).toEqual(newUserData.username);
-            expect(createdUser.password).toEqual(newUserData.password);
+            expect(createdUser.username).toEqual(newUser.username);
+            expect(createdUser.password).toEqual(newUser.password);
         })
     })
 
@@ -201,13 +201,13 @@ describe('/signup POST', () => {
             })
 
             const createUser = async () => {
-                const newUser = new User(newUserData);
-                const createdUser = await newUser.save();
+                const user = new User(newUser);
+                const createdUser = await user.save();
                 return createdUser;
             }
 
             beforeAll(async () => {
-                response = await signupRequest(newUserData);
+                response = await signupRequest(newUser);
             })
 
             it('status should be 400', () => {

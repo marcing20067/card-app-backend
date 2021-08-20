@@ -1,11 +1,11 @@
 const httpRequest = require('supertest');
 
-const validUserData = {
+const validUser = {
     username: 'admin',
     password: 'password',
 }
 
-const newUserData = {
+const newUser = {
     username: 'newUsername',
     password: 'newPassword'
 }
@@ -58,7 +58,7 @@ const getTokenByApp = async (app) => {
         const response = await makeHttpRequest(app, {
             method: 'POST',
             endpoint: '/login',
-            data: validUserData
+            data: validUser
         });
         token = response.body.accessToken
     }
@@ -68,7 +68,7 @@ const getTokenByApp = async (app) => {
 module.exports = {
     makeHttpRequest,
     httpRequest,
-    validUserData,
-    newUserData,
+    validUser,
+    newUser,
     validSet,
 }

@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 
-const Token = require('../middlewares/token.js')
+const checkTokenAndSetUserData = require('../middlewares/token.js')
 const SetsController = require('../controllers/sets.js');
 
-router.get('/', Token, SetsController.getSets);
-router.get('/:setId', Token, SetsController.getSet);
-router.delete('/:setId', Token, SetsController.deleteSet);
-router.put('/:setId', Token, SetsController.updateSet)
-router.post('', Token, SetsController.addSet)
+router.get('/', checkTokenAndSetUserData, SetsController.getSets);
+router.get('/:setId', checkTokenAndSetUserData, SetsController.getSet);
+router.delete('/:setId', checkTokenAndSetUserData, SetsController.deleteSet);
+router.put('/:setId', checkTokenAndSetUserData, SetsController.updateSet)
+router.post('', checkTokenAndSetUserData, SetsController.addSet)
 
 module.exports = router;

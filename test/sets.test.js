@@ -1,4 +1,4 @@
-const { validSet, validUserData, makeHttpRequest } = require('./testApi.js');
+const { validSet, validUser, makeHttpRequest } = require('./testApi.js');
 const app = require('../app');
 const mongoose = require('mongoose');
 const Set = require('../models/set');
@@ -77,7 +77,7 @@ const findOrCreateSet = async () => {
 }
 
 const findUser = async () => {
-    const findedUser = await User.findOne(validUserData);
+    const findedUser = await User.findOne(validUser);
     return findedUser._id;
 }
 
