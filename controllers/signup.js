@@ -1,5 +1,9 @@
 const User = require('../models/user.js');
-const signupErrorMessages = require('../errorTexts/controllersTexts/signup.js')
+const isShortErrorAndSendErrorByResAndMessage = require('../utils/short.js');
+const isRequiredErrorAndSendErrorByResAndMessage = require('../utils/isRequired.js');
+const errorTexts = require('../errorTexts/errorTexts.js');
+const invalidDataErrorText = errorTexts.invalidData;
+const usernameTakenErrorText = errorTexts.controllers.signup.usernameTaken;
 
 exports.signup = async (req, res, next) => {
     const user = {
@@ -11,35 +15,33 @@ exports.signup = async (req, res, next) => {
         const createdUser = await newUser.save();
         res.status(201).send(createdUser);
     } catch (err) {
-        if (err.name === 'MongoError' && err.code === 11000) {
-            return res.status(409).send({ message: signupErrorMessages.usernameTaken })
+        if (isUsernameTakenErrorAndSendErrorByResAndErr(res, err)) {
+            return;
         }
         if (err.errors.username) {
             const message = err.errors.username.properties.message;
-            if(isRequiredError(message)) {
-                return res.status(400).send({ message: signupErrorMessages.requiredUsername });
-            }
-            if(isShortError(message)) {
-                return res.status(400).send({ message: signupErrorMessages.tooShortUsername})
+            if(isShortOrRequiredErrorAndSendErrorByResAndMessage(res, message)) {
+                return;
             }
         }
         if (err.errors.password) {
             const message = err.errors.password.properties.message;
-            if(isRequiredError(message)) {
-                return res.status(400).send({ message: signupErrorMessages.requiredPassword });
-            }
-            if(isShortError(message)) {
-                return res.status(400).send({ message: signupErrorMessages.tooShortPassword })
+            if(isShortOrRequiredErrorAndSendErrorByResAndMessage(res, message)) {
+                return;
             }
         }
-        res.status(400).send({ message: signupErrorMessages.invalidData })
+        res.status(400).send({ message: invalidDataErrorText })
     }
 }
 
-const isRequiredError = (message) => {
-    return message.includes('required');
+const isShortOrRequiredErrorAndSendErrorByResAndMessage = (res, message) => {
+    return isShortErrorAndSendErrorByResAndMessage(res, message) || isRequiredErrorAndSendErrorByResAndMessage(res, message);
 }
 
-const isShortError = (message) => {
-    return message.includes('shorter');
+const isUsernameTakenErrorAndSendErrorByResAndErr = (res, err) => {
+    if (err.name === 'MongoError' && err.code === 11000) {
+        res.status(409).send({ message: usernameTakenErrorText })
+        return true;
+    }
+    return false;
 }

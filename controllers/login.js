@@ -1,45 +1,65 @@
 const User = require('../models/user.js');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
-const loginErrorMessages = require('../errorTexts/controllersTexts/login.js')
+const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
+const errorTexts = require('../errorTexts/errorTexts.js');
+const loginInvalidDataErrorText = errorTexts.controllers.login.invalidData;
 
-const login = async (req, res, next) => {
-    const user = {
+exports.login = async (req, res, next) => {
+    const userData = {
         username: req.body.username,
         password: req.body.password,
     }
 
-    if(user.username === undefined) {
-        return res.status(400).send({ message: loginErrorMessages.usernameRequired});
-    }
-    if(user.password === undefined) {
-        return res.status(400).send({ message: loginErrorMessages.passwordRequired});
+    if (isAnyPropertyUndefinedAndSendError(res, userData)) {
+        return;
     }
 
     try {
-        const findedUser = await User.findOne(user)
-
-        if (!findedUser) return res.status(400).send({ message: loginErrorMessages.invalidData });
+        const findedUser = await findUser(userData);
 
         const userDataForToken = {
             id: findedUser._id,
         }
 
-        const accessToken = await jwt.sign(userDataForToken, config.ACCESS_TOKEN, { expiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS });
-        const refreshToken = await jwt.sign(userDataForToken, config.REFRESH_TOKEN, { expiresIn: config.REFRESH_TOKEN_EXPIRES });
+        const tokenData = createTokenData(userDataForToken);
 
-        res.cookie('refreshToken', refreshToken, {
-            maxAge: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS,
-            httpOnly: true
-        })
+        setRefreshTokenInCookie(res, tokenData);
 
         res.send({
-            accessToken,
-            accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+            accessToken: tokenData.accessToken,
+            accessTokenExpiresIn: tokenData.accessTokenExpiresIn,
         })
-    } catch { 
-        // all cases are handled by line 15
+    } catch {
+        return res.status(400).send({ message: loginInvalidDataErrorText });
     }
 }
 
-exports.login = login;
+const findUser = async (userData) => {
+    const findedUser = await User.findOne(userData)
+    if (!findedUser) {
+        throw new Error;
+    }
+    return findedUser;
+}
+
+const createTokenData = (payload) => {
+    const accessToken = jwt.sign(payload, config.ACCESS_TOKEN, { expiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS });
+    const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN, { expiresIn: config.REFRESH_TOKEN_EXPIRES });
+
+    const tokenData = {
+        accessToken: accessToken,
+        accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+        refreshToken: refreshToken,
+        refreshTokenExpiresIn: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+    }
+
+    return tokenData;
+}
+
+const setRefreshTokenInCookie = (res, tokenData) => {
+    res.cookie('refreshToken', tokenData.refreshToken, {
+        maxAge: tokenData.refreshTokenExpiresIn,
+        httpOnly: true
+    })
+}

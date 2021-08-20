@@ -1,6 +1,6 @@
 const app = require('../app.js');
 const mongoose = require('mongoose');
-const { makeHttpReqByAppWithOptions } = require('./testApi.js');
+const { makeHttpRequest } = require('./testApi.js');
 
 afterAll(done => {
     mongoose.connection.close()
@@ -8,7 +8,7 @@ afterAll(done => {
 })
 
 const loginRequest = (userData) => {
-    return makeHttpReqByAppWithOptions(app, {
+    return makeHttpRequest(app, {
         method: 'POST',
         endpoint: '/login',
         data: userData,

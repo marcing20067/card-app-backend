@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');;
 const { Schema } = mongoose;
-const userErrorsMessages = require('../errorTexts/modelsTexts/user.js')
+const errorTexts = require('../errorTexts/errorTexts');
+const invalidUsernameErrorText = errorTexts.models.user.invalidUsername;
 
 const User = new Schema({
     username: {
@@ -10,7 +11,7 @@ const User = new Schema({
         validate: {
             validator: value => /[a-z]/i.test(value),
             message: props => {
-                return userErrorsMessages.invalidData
+                return invalidUsernameErrorText
             }
         },
         minLength: 4

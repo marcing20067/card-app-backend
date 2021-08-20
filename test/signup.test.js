@@ -1,4 +1,4 @@
-const { makeHttpReqByAppWithOptions, newUserData } = require('./testApi.js');
+const { makeHttpRequest, newUserData } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
@@ -10,7 +10,7 @@ afterAll(done => {
 
 describe('/signup POST', () => {
     const signupRequest = (userData) => {
-        return makeHttpReqByAppWithOptions(app,
+        return makeHttpRequest(app,
             {
                 method: 'POST',
                 data: userData,
@@ -19,17 +19,18 @@ describe('/signup POST', () => {
     }
 
     beforeAll(async () => {
-        const userId = await findUserAndReturnUserIdByUserData(newUserData);
-        await deleteUserById(userId);
+        const user = await findUser(newUserData);
+        const userId = user._id;
+        await deleteUser(userId);
     })
 
-    const findUserAndReturnUserIdByUserData = async (userData) => {
+    const findUser = async (userData) => {
         const findedUser = await User.findOne(userData);
         return findedUser._id;
     }
 
-    const deleteUserById = async (id) => {
-        await User.deleteOne({ _id: id });
+    const deleteUser = async (userId) => {
+        await User.deleteOne({ _id: userId });
     }
 
     describe('correct request', () => {
@@ -41,7 +42,7 @@ describe('/signup POST', () => {
 
         afterAll(async () => {
             const createdUser = response.body;
-            await deleteUserById(createdUser._id)
+            await deleteUser(createdUser._id)
         })
 
         it('status should be 201', () => {
@@ -201,7 +202,8 @@ describe('/signup POST', () => {
 
             const createUser = async () => {
                 const newUser = new User(newUserData);
-                await newUser.save();
+                const createdUser = await newUser.save();
+                return createdUser;
             }
 
             beforeAll(async () => {

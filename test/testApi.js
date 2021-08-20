@@ -1,4 +1,4 @@
-const httpRequestByApp = require('supertest');
+const httpRequest = require('supertest');
 
 const validUserData = {
     username: 'admin',
@@ -10,7 +10,7 @@ const newUserData = {
     password: 'newPassword'
 }
 
-const set = {
+const validSet = {
     name: 'name',
     cards: [
         {
@@ -29,19 +29,18 @@ const set = {
     creator: 'creator'
 }
 
-const makeHttpReqByAppWithOptions = async (app, options) => {
-    const { method, endpoint, cookie, isIncludeToken, data, customToken } = options;
-    // Key of object must be lowercase
-    const methodKey = options.method.toLowerCase();
+const makeHttpRequest = async (app, options) => {
+    const { method, endpoint, customCookie , isIncludeToken, data, customToken } = options;
+    const lowercaseMethod = options.method.toLowerCase();
     
-    let request = httpRequestByApp(app)[methodKey](endpoint);
+    let request = httpRequest(app)[lowercaseMethod](endpoint);
 
-    if(method === 'POST') {
+    if(method === 'POST' || method === 'PUT') {
         request = request.send(data);
     }
 
-    if (cookie) {
-        request = request.set('Cookie', cookie)
+    if (customCookie) {
+        request = request.set('Cookie', customCookie)
     }
 
     if (isIncludeToken) {
@@ -56,7 +55,7 @@ let token;
 
 const getTokenByApp = async (app) => {
     if (!token) {
-        const response = await makeHttpReqByAppWithOptions(app, {
+        const response = await makeHttpRequest(app, {
             method: 'POST',
             endpoint: '/login',
             data: validUserData
@@ -67,9 +66,9 @@ const getTokenByApp = async (app) => {
 }
 
 module.exports = {
-    makeHttpReqByAppWithOptions,
-    httpRequestByApp,
+    makeHttpRequest,
+    httpRequest,
     validUserData,
     newUserData,
-    set,
+    validSet,
 }

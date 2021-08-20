@@ -1,4 +1,4 @@
-const { validUserData, makeHttpReqByAppWithOptions } = require('./testApi.js');
+const { validUserData, makeHttpRequest } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 
@@ -7,11 +7,11 @@ afterAll(done => {
     done()
 })
 
-const refreshRequest = (cookie) => {
-    return makeHttpReqByAppWithOptions(app, {
+const refreshRequest = (customCookie) => {
+    return makeHttpRequest(app, {
         method: 'GET',
         endpoint: '/refresh',
-        cookie: cookie,
+        customCookie: customCookie,
     });
 }
 
@@ -19,17 +19,21 @@ describe('/refresh GET', () => {
     describe('correct request', () => {
         let response;
         beforeAll(async () => {
-            const refreshTokenCookie = await loginRequestAndReturnRefreshTokenCookie();
+            const refreshTokenCookie = await getRefreshTokenCookie();
             response = await refreshRequest(refreshTokenCookie);
         })
 
-        const loginRequestAndReturnRefreshTokenCookie = async () => {
-            const response = await makeHttpReqByAppWithOptions(app, {
+        const loginRequest = (userData) => {
+            return makeHttpRequest(app, {
                 method: 'POST',
                 endpoint: '/login',
-                data: validUserData
+                data: userData
             })
-            const refreshTokenCookie = response.header['set-cookie'][0].split(';')[0]
+        }
+
+        const getRefreshTokenCookie = async () => {
+            const cookieResponse = await loginRequest(validUserData);
+            const refreshTokenCookie = cookieResponse.header['set-cookie'][0].split(';')[0]
             return refreshTokenCookie;
         }
 

@@ -1,8 +1,10 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
-const refreshErrorMessages = require('../errorTexts/controllersTexts/refresh.js');
+const errorTexts = require('../errorTexts/errorTexts.js');
+const invalidRefreshTokenErrorText = errorTexts.controllers.refresh.invalidRefreshToken;
 
-const createAndSetRefreshToken = async (req, res, next) => {
+
+exports.refreshToken = (req, res, next) => {
     const token = req.cookies.refreshToken;
 
     try {
@@ -16,10 +18,44 @@ const createAndSetRefreshToken = async (req, res, next) => {
         });
 
         res.status(201).send({ accessToken: newAccessToken, accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS, })
-    }
-    catch (error) {
-        res.status(400).send({ message: refreshErrorMessages.invalidData })
+    } catch {
+        res.status(400).send({ message: invalidRefreshTokenErrorText })
     }
 }
 
-exports.refreshToken = createAndSetRefreshToken;
+exports.refresh = (req, res, next) => {
+    const token = req.cookies.refreshToken;
+
+    try {
+        const userData = jwt.verify(token, config.REFRESH_TOKEN)
+        const tokenData = createTokenData(userData);
+
+        setRefreshTokenInCookie(res, tokenData);
+
+        res.status(201).send({ accessToken: tokenData.accessToken, accessTokenExpiresIn: tokenData.accessTokenExpiresIn, })
+    } catch(error) {
+        console.log(error);
+        res.status(400).send({ message: invalidRefreshTokenErrorText })
+    }
+}
+
+const createTokenData = (payload) => {
+    const accessToken = jwt.sign(payload, config.ACCESS_TOKEN);
+    const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN);
+
+    const tokenData = {
+        accessToken: accessToken,
+        accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+        refreshToken: refreshToken,
+        refreshTokenExpiresIn: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+    }
+
+    return tokenData;
+}
+
+const setRefreshTokenInCookie = (res, tokenData) => {
+    res.cookie('refreshToken', tokenData.refreshToken, {
+        maxAge: tokenData.refreshTokenExpiresIn,
+        httpOnly: true
+    })
+}
