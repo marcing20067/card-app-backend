@@ -3,11 +3,13 @@ const httpRequest = require('supertest');
 const validUser = {
     username: 'admin',
     password: 'password',
+    email: 'email@mail.pl'
 }
 
 const newUser = {
     username: 'newUsername',
-    password: 'newPassword'
+    password: 'newPassword',
+    email: 'email1@mail.pl'
 }
 
 const validSet = {
@@ -30,7 +32,7 @@ const validSet = {
 }
 
 const responseStatusShouldBe = (response, status) => {
-    expect(response.status).toEqual(status);
+    expect(response.status).toBe(status);
 }
 
 const responseTypeShouldContainJson = (response) => {
@@ -57,7 +59,7 @@ const makeHttpRequest = async (app, options) => {
     }
 
     if (isIncludeToken) {
-        const authToken = customToken || await getTokenByApp(app);
+        const authToken = customToken || await getToken(app);
         request = request.set('Authorization', 'Bearer ' + authToken);
     }
 
@@ -66,7 +68,7 @@ const makeHttpRequest = async (app, options) => {
 
 let token;
 
-const getTokenByApp = async (app) => {
+const getToken = async (app) => {
     if (!token) {
         const response = await makeHttpRequest(app, {
             method: 'POST',
@@ -86,4 +88,5 @@ module.exports = {
     responseTypeShouldContainJson,
     responseBodyShouldContainProperty,
     makeHttpRequest,
+    getToken,
 }

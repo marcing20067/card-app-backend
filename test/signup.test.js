@@ -64,7 +64,7 @@ describe('/signup POST', () => {
             beforeAll(async () => {
                 const userData = {
                     username: 's',
-                    password: 'password'
+                    password: newUser.password
                 }
                 response = await signupRequest(userData);
             });
@@ -84,7 +84,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    username: 'username',
+                    username: newUser.username,
                     password: 'p'
                 }
                 response = await signupRequest(userData);
@@ -124,7 +124,8 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    username: 'username'
+                    email: newUser.email,
+                    username: newUser.username
                 };
                 response = await signupRequest(userData);
             });
@@ -144,7 +145,8 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    password: 'password'
+                    email: newUser.email,
+                    password: newUser.password
                 };
                 response = await signupRequest(userData);
             });
@@ -157,6 +159,48 @@ describe('/signup POST', () => {
 
             it('message should be correct', () => {
                 expect(response.body.message).toEqual('Username is required.')
+            })
+        })
+        describe('without email', () => {
+            let response;
+            beforeAll(async () => {
+                const userData = {
+                    username: newUser.username,
+                    password: newUser.password
+                };
+                response = await signupRequest(userData);
+            });
+
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
+            })
+
+            it('message should be correct', () => {
+                expect(response.body.message).toEqual('Email is required.')
+            })
+        })
+
+        describe('with invalid email', () => {
+            let response;
+            beforeAll(async () => {
+                const userData = {
+                    username: newUser.username,
+                    password: newUser.password,
+                    email: 'email'
+                };
+                response = await signupRequest(userData);
+            });
+
+            it('basic wrong request tests', () => {
+                responseTypeShouldContainJson(response);
+                responseStatusShouldBe(response, 400);
+                responseBodyShouldContainProperty(response, 'message');
+            })
+
+            it('message should be correct', () => {
+                expect(response.body.message).toEqual('Email is required.')
             })
         })
 

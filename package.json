@@ -17,6 +17,7 @@
     "morgan": "~1.9.1"
   },
   "devDependencies": {
+    "base64url": "^3.0.1",
     "jest": "^27.0.6",
     "supertest": "^6.1.4"
   }
