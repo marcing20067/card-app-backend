@@ -2,7 +2,7 @@ const { validUser, responseStatusShouldBe, responseTypeShouldContainJson, respon
 const app = require('../app.js');
 const mongoose = require('mongoose');
 beforeAll(async () => {
-    const user = await createValidUser();
+    await createValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()

@@ -10,7 +10,7 @@ afterAll(done => {
 })
 
 beforeAll(async () => {
-    const user = await createValidUser();
+    await createValidUser();
 })
 
 describe('/sets GET', () => {

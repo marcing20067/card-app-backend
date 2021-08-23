@@ -5,7 +5,7 @@ const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShoul
 const base64url = require('base64url');
 const OneTimeToken = {};
 beforeAll(async () => {
-    const user = await createValidUser();
+    await createValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()

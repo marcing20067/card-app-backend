@@ -5,7 +5,7 @@ const base64url = require('base64url');
 const User = require('../models/user.js');
 const OneTimeToken = {};
 beforeAll(async () => {
-    const user = await createValidUser();
+    await createValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()
