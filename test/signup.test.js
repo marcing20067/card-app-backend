@@ -20,13 +20,16 @@ describe('/signup POST', () => {
 
     beforeAll(async () => {
         const user = await findUser(newUser);
-        const userId = user._id;
-        await deleteUser(userId);
+        console.log(user);
+        if (user) {
+            const userId = user._id;
+            await deleteUser(userId);
+        }
     })
 
     const findUser = async (userData) => {
         const findedUser = await User.findOne(userData);
-        return findedUser._id;
+        return findedUser;
     }
 
     const deleteUser = async (userId) => {
@@ -41,8 +44,12 @@ describe('/signup POST', () => {
         })
 
         afterAll(async () => {
-            const createdUser = response.body;
-            await deleteUser(createdUser._id)
+            const user = await findUser(newUser);
+            console.log(user);
+            if (user) {
+                const userId = user._id;
+                await deleteUser(userId);
+            }
         })
 
         it('basic correct request tests', () => {
