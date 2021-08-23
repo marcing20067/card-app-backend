@@ -6,6 +6,7 @@ const token = require('../utils/token.js');
 
 exports.login = async (req, res, next) => {
     const userData = {
+        email: req.body.email,
         username: req.body.username,
         password: req.body.password,
     }

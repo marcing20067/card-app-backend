@@ -1,6 +1,6 @@
 const app = require('../app.js');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, createValidUser } = require('./testApi.js');
+const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, createValidUser, validUser } = require('./testApi.js');
 beforeAll(async () => {
     const user = await createValidUser(app);
 })
@@ -22,8 +22,9 @@ describe('/login POST', () => {
         let response;
         beforeAll(async () => {
             response = await loginRequest({
-                username: 'admin',
-                password: 'password'
+                email: validUser.email,
+                username: validUser.username,
+                password: validUser.password
             })
         })
 
@@ -51,7 +52,8 @@ describe('/login POST', () => {
         describe('request with empty username', () => {
             let response;
             const userData = {
-                password: 'password'
+                email: validUser.email,
+                password: validUser.password
             }
 
             beforeAll(async () => {
@@ -69,10 +71,11 @@ describe('/login POST', () => {
             })
         })
 
-        describe('request with empty password', () => {
+        describe('request without password', () => {
             let response;
             const userData = {
-                username: 'username'
+                email: validUser.email,
+                username: validUser.username
             }
             beforeAll(async () => {
                 response = await loginRequest(userData)
@@ -93,6 +96,7 @@ describe('/login POST', () => {
         describe('request with invalid username', () => {
             let response;
             const userData = {
+                email: validUser.email,
                 username: '',
                 password: 'password'
             }
@@ -116,8 +120,9 @@ describe('/login POST', () => {
         describe('request with invalid password', () => {
             let response;
             const userData = {
-                username: 'username',
-                password: ''
+                username: validUser.username,
+                password: '',
+                email: validUser.email
             }
 
             beforeAll(async () => {

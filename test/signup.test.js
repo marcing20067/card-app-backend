@@ -21,7 +21,7 @@ describe('/signup POST', () => {
     }
 
     beforeAll(async () => {
-        const user = await findUser(newUser);
+        const user = await findUser({ username: newUser.username });
         if (user) {
             const userId = user._id;
             await deleteUser(userId);
@@ -44,14 +44,6 @@ describe('/signup POST', () => {
             response = await signupRequest(newUser);
         })
 
-        afterAll(async () => {
-            const user = await findUser(newUser);
-            if (user) {
-                const userId = user._id;
-                await deleteUser(userId);
-            }
-        })
-
         it('basic correct request tests', () => {
             responseTypeShouldContainJson(response);
             responseStatusShouldBe(response, 201);
@@ -70,6 +62,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
+                    email: newUser.email,
                     username: 's',
                     password: newUser.password
                 }
@@ -91,6 +84,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
+                    email: newUser.email,
                     username: newUser.username,
                     password: 'p'
                 }
@@ -207,7 +201,7 @@ describe('/signup POST', () => {
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Email is required.')
+                expect(response.body.message).toEqual('Invalid request data.')
             })
         })
 
@@ -215,13 +209,17 @@ describe('/signup POST', () => {
             let response;
 
             beforeAll(async () => {
-                await createUser()
+                await findOrCreateUser()
             })
 
-            const createUser = async () => {
-                const user = new User(newUser);
-                const createdUser = await user.save();
-                return createdUser;
+            const findOrCreateUser = async () => {
+                const findedUser = await User.findOne(newUser);
+                if (!findedUser) {
+                    const user = new User(newUser);
+                    const createdUser = await user.save();
+                    return createdUser;
+                }
+                return findedUser;
             }
 
             beforeAll(async () => {

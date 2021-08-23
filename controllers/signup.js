@@ -1,15 +1,18 @@
 const User = require('../models/user.js');
 const isShortErrorAndSendError = require('../utils/short.js');
-const isRequiredErrorAndSendError = require('../utils/isRequired.js');
 const errorTexts = require('../errorTexts/errorTexts.js');
+const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
 const invalidDataErrorText = errorTexts.invalidData;
 const usernameTakenErrorText = errorTexts.controllers.signup.usernameTaken;
-
 exports.signup = async (req, res, next) => {
     const user = {
         username: req.body.username,
         password: req.body.password,
+        email: req.body.email,
     };
+    if(isAnyPropertyUndefinedAndSendError(res, user)){
+        return;
+    }
     try {
         const createdUser = await createUser(user);
         res.status(201).send(createdUser);
@@ -19,13 +22,13 @@ exports.signup = async (req, res, next) => {
         }
         if (err.errors.username) {
             const message = err.errors.username.properties.message;
-            if (isShortOrRequiredErrorAndSendError(res, message)) {
+            if (isShortErrorAndSendError(res, message)) {
                 return;
             }
         }
         if (err.errors.password) {
             const message = err.errors.password.properties.message;
-            if (isShortOrRequiredErrorAndSendError(res, message)) {
+            if (isShortErrorAndSendError(res, message)) {
                 return;
             }
         }
@@ -45,9 +48,5 @@ const isUsernameTakenErrorAndSendError = (res, err) => {
         return true;
     }
     return false;
-}
-
-const isShortOrRequiredErrorAndSendError = (res, message) => {
-    return isShortErrorAndSendError(res, message) || isRequiredErrorAndSendError(res, message);
 }
 
