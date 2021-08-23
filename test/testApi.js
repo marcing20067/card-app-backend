@@ -1,15 +1,16 @@
 const httpRequest = require('supertest');
+const User = require('../models/user.js');
 
 const validUser = {
     username: 'admin',
     password: 'password',
-    email: 'email@mail.pl'
+    // email: 'email@mail.pl'
 }
 
 const newUser = {
     username: 'newUsername',
     password: 'newPassword',
-    email: 'email1@mail.pl'
+    // email: 'email1@mail.pl'
 }
 
 const validSet = {
@@ -80,6 +81,16 @@ const getToken = async (app) => {
     return token;
 }
 
+const createValidUser = async (app) => {
+    const findedUser = await User.findOne(validUser);
+    if(!findedUser) {
+        const user = new User(validUser);
+        const createdUser = await user.save();
+        return createdUser;
+    }
+    return findedUser;
+}
+
 module.exports = {
     newUser,
     validUser,
@@ -89,4 +100,5 @@ module.exports = {
     responseBodyShouldContainProperty,
     makeHttpRequest,
     getToken,
+    createValidUser
 }
