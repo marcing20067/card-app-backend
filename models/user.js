@@ -16,6 +16,7 @@ const User = new Schema({
         },
         minLength: 4
     },
+    isActivated: { type: Boolean, required: true},
     email: {
         type: String,
         validate: {

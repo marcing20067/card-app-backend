@@ -215,7 +215,7 @@ describe('/signup POST', () => {
             const findOrCreateUser = async () => {
                 const findedUser = await User.findOne(newUser);
                 if (!findedUser) {
-                    const user = new User(newUser);
+                    const user = new User({...newUser, isActivated: false});
                     const createdUser = await user.save();
                     return createdUser;
                 }

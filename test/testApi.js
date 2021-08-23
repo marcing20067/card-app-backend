@@ -84,7 +84,7 @@ const getToken = async (app) => {
 const createValidUser = async () => {
     const findedUser = await User.findOne(validUser);
     if(!findedUser) {
-        const user = new User(validUser);
+        const user = new User({...validUser, isActivated: false});
         const createdUser = await user.save();
         return createdUser;
     }

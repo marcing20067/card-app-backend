@@ -6,6 +6,7 @@ const invalidDataErrorText = errorTexts.invalidData;
 const usernameTakenErrorText = errorTexts.controllers.signup.usernameTaken;
 exports.signup = async (req, res, next) => {
     const user = {
+        isActivated: false,
         username: req.body.username,
         password: req.body.password,
         email: req.body.email,
