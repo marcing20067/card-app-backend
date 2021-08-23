@@ -3,7 +3,7 @@ const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
 beforeAll(async () => {
-    const user = await createValidUser(app);
+    const user = await createValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()

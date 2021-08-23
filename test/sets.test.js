@@ -10,7 +10,7 @@ afterAll(done => {
 })
 
 beforeAll(async () => {
-    const user = await createValidUser(app);
+    const user = await createValidUser();
 })
 
 describe('/sets GET', () => {
@@ -60,12 +60,12 @@ describe('/sets GET', () => {
 })
 
 const findOrCreateSet = async () => {
-    const userId = await findUser();
-    const findedSet = await Set.findOne({ creator: userId });
+    const user = await findUser();
+    const findedSet = await Set.findOne({ creator: user._id });
     if (findedSet) {
         return findedSet;
     } else {
-        const newSet = new Set({ ...validSet, creator: userId });
+        const newSet = new Set({ ...validSet, creator: user._id });
         const createdSet = await newSet.save();
         return createdSet;
     }
@@ -73,7 +73,7 @@ const findOrCreateSet = async () => {
 
 const findUser = async () => {
     const findedUser = await User.findOne(validUser);
-    return findedUser._id;
+    return findedUser;
 }
 
 describe('/sets/:setId GET', () => {

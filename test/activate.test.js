@@ -2,11 +2,10 @@ const app = require('../app.js');
 const mongoose = require('mongoose');
 const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, getToken, createValidUser } = require('./testApi.js');
 
-// mock model
 const base64url = require('base64url');
 const OneTimeToken = {};
 beforeAll(async () => {
-    const user = await createValidUser(app);
+    const user = await createValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()
