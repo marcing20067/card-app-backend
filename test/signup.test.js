@@ -168,7 +168,7 @@ describe('/signup POST', () => {
                 expect(response.body.message).toEqual('Username is required.')
             })
         })
-        describe.skip('without email', () => {
+        describe('without email', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
@@ -189,7 +189,7 @@ describe('/signup POST', () => {
             })
         })
 
-        describe.skip('with invalid email', () => {
+        describe('with invalid email', () => {
             let response;
             beforeAll(async () => {
                 const userData = {

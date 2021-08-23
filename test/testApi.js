@@ -4,13 +4,13 @@ const User = require('../models/user.js');
 const validUser = {
     username: 'admin',
     password: 'password',
-    // email: 'email@mail.pl'
+    email: 'email@mail.pl'
 }
 
 const newUser = {
     username: 'newUsername',
     password: 'newPassword',
-    // email: 'email1@mail.pl'
+    email: 'email1@mail.pl'
 }
 
 const validSet = {
