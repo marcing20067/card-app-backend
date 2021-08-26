@@ -84,14 +84,15 @@ const getToken = async (app) => {
 let isUserCreated = false;
 const createValidUser = async () => {
     if (!isUserCreated) {
-        const findedUser = await User.findOne(validUser);
-        if (!findedUser) {
+        try {
             const user = new User({ ...validUser, isActivated: false });
-            const createdUser = await user.save();
+            await user.save();
+            isUserCreated = true;
+        } catch {
+            // User is exist.
             isUserCreated = true;
         }
-        isUserCreated = true;
-    } 
+    }
 }
 
 module.exports = {

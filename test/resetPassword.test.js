@@ -12,7 +12,7 @@ afterAll(done => {
     done()
 })
 
-describe('/reset-password GET', () => {
+describe.skip('/reset-password GET', () => {
     describe('correct request', () => {
         let response;
         beforeAll(async () => {
@@ -69,7 +69,7 @@ describe('/reset-password GET', () => {
 
 })
 
-describe('/reset-password/:token POST', () => {
+describe.skip('/reset-password/:token POST', () => {
     describe('correct request', () => {
         let response;
 

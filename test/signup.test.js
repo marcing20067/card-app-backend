@@ -209,22 +209,16 @@ describe('/signup POST', () => {
             let response;
 
             beforeAll(async () => {
-                await findOrCreateUser()
-            })
-
-            const findOrCreateUser = async () => {
-                const findedUser = await User.findOne(newUser);
-                if (!findedUser) {
-                    const user = new User({...newUser, isActivated: false});
-                    const createdUser = await user.save();
-                    return createdUser;
-                }
-                return findedUser;
-            }
-
-            beforeAll(async () => {
+                await createUser();
                 response = await signupRequest(newUser);
             })
+
+            const createUser = async () => {
+                try {
+                    const user = new User({ ...newUser, isActivated: false });
+                    const createdUser = await user.save();
+                } catch {}
+            }
 
             it('basic wrong request tests', () => {
                 responseTypeShouldContainJson(response);

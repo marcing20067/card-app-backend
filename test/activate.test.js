@@ -29,7 +29,7 @@ const activateUserRequest = (oneTimeToken, customToken = undefined) => {
     });
 }
 
-describe('/active GET', () => {
+describe.skip('/active GET', () => {
     describe('correct request', () => {
         let response;
         beforeAll(async () => {
@@ -73,7 +73,7 @@ describe('/active GET', () => {
     })
 })
 
-describe('/active/:token GET', () => {
+describe.skip('/active/:token GET', () => {
     describe('correct request', () => {
         let response;
 

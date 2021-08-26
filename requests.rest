@@ -1,10 +1,11 @@
 ###
-POST http://localhost:3000/login
+POST http://localhost:3000/signup
 Content-Type: application/json
 
 {
-    "username": "admin",
-    "password": "password"
+    "email": "test@example.com",
+    "username": "test",
+    "password": "test123345"
 }
 ###
 GET http://localhost:3000/refresh
