@@ -4,18 +4,21 @@ const errorTexts = require('../errorTexts/errorTexts.js');
 const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
 const invalidDataErrorText = errorTexts.invalidData;
 const usernameTakenErrorText = errorTexts.controllers.signup.usernameTaken;
+const oneTimeTokenFunctions = require('../utils/oneTimeToken.js');
+
 exports.signup = async (req, res, next) => {
-    const user = {
+    const userData = {
         isActivated: false,
         username: req.body.username,
         password: req.body.password,
         email: req.body.email,
     };
-    if(isAnyPropertyUndefinedAndSendError(res, user)){
+    if(isAnyPropertyUndefinedAndSendError(res, userData)){
         return;
     }
     try {
-        const createdUser = await createUser(user);
+        const createdUser = await createUser(userData);
+        const createdOneTimeToken = await createOneTimeToken(createdUser);
         res.status(201).send(createdUser);
     } catch (err) {
         if (isUsernameTakenErrorAndSendError(res, err)) {
@@ -35,6 +38,12 @@ exports.signup = async (req, res, next) => {
         }
         res.status(400).send({ message: invalidDataErrorText })
     }
+}
+
+const createOneTimeToken = async (userData) => {
+    const creator = userData._id;
+    const oneTimeToken = await oneTimeTokenFunctions.createOneTimeToken(creator);
+    return oneTimeToken;
 }
 
 const createUser = async (user) => {
