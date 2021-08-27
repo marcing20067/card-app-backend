@@ -14,7 +14,6 @@ exports.activate = async (req, res) => {
         if (oneTimeTokenHasExpired) {
             const newOneTimeToken = oneTimeTokenFunctions.generateNewOneTimeToken(token);
             const url = oneTimeTokenFunctions.createUrl(newOneTimeToken);
-            console.log(url);
             res.send({ message: 'The previous token has expired. Check the email and go to the new link.' })
             return;
         }
