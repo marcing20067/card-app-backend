@@ -22,7 +22,6 @@ exports.activate = async (req, res) => {
         res.send({ message: 'The user has been activated successfully.' });
 
     } catch (error) {
-        console.log(error);
         res.status(400).send({ message: error.message || invalidDataErrorText })
     }
 }

@@ -1,8 +1,8 @@
 const app = require('../app.js');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, createValidUser, validUser } = require('./testApi.js');
+const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, messageShouldBe, makeHttpRequest, tryCreateValidUser, validUser } = require('./testApi.js');
 beforeAll(async () => {
-    await createValidUser();
+    await tryCreateValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()
@@ -18,123 +18,124 @@ const loginRequest = (userData) => {
 }
 
 describe('/login POST', () => {
-    describe('correct request', () => {
+    describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
-            response = await loginRequest({
-                email: validUser.email,
-                username: validUser.username,
-                password: validUser.password
-            })
+            response = await loginRequest(validUser);
         })
 
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 200', () => {
             responseStatusShouldBe(response, 200);
         })
-        
-        it('response body should contain tokenData', () => {
+
+        it('response body should contain accessToken and accessTokenExpiresIn', () => {
             responseBodyShouldContainProperty(response, 'accessToken')
             responseBodyShouldContainProperty(response, 'accessTokenExpiresIn')
         })
 
-        it('should add refresh token cookie', () => {
+        it('cookies should contain refreshToken', () => {
             const cookies = response.headers['set-cookie'][0].split('; ');
-
-            expect(cookies[0].includes('refreshToken'));
+            const refreshTokenCookie = cookies[0];
+            expect(refreshTokenCookie).toMatch('refreshToken');
         })
     })
 
-    describe('invalid request', () => {
-        describe('request with empty username', () => {
+    describe('when request is invalid', () => {
+        describe('when username is undefined', () => {
             let response;
-            const userData = {
-                email: validUser.email,
-                password: validUser.password
-            }
-
             beforeAll(async () => {
+                const userData = {
+                    ...validUser,
+                    username: undefined
+                }
                 response = await loginRequest(userData)
             })
-            it('basic wrong request tests', () => {
+
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toEqual('Username is required.');
+                messageShouldBe(response, 'Username is required.')
             })
         })
 
-        describe('request without password', () => {
+        describe('when password is undefined', () => {
             let response;
-            const userData = {
-                email: validUser.email,
-                username: validUser.username
-            }
             beforeAll(async () => {
+                const userData = {
+                    ...validUser,
+                    password: undefined,
+                }
                 response = await loginRequest(userData)
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
-            })
-
-            it('message should be correct"', () => {
-                const message = response.body.message;
-                expect(message).toEqual('Password is required.');
-            })
-        })
-
-        describe('request with invalid username', () => {
-            let response;
-            const userData = {
-                email: validUser.email,
-                username: '',
-                password: 'password'
-            }
-
-            beforeAll(async () => {
-                response = await loginRequest(userData)
-            })
-
-            it('basic wrong request tests', () => {
-                responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toEqual('User does not exist.')
+                messageShouldBe(response, 'Password is required.')
             })
         })
 
-        describe('request with invalid password', () => {
+        describe('when username is invalid', () => {
             let response;
-            const userData = {
-                username: validUser.username,
-                password: '',
-                email: validUser.email
-            }
-
             beforeAll(async () => {
+                const userData = {
+                    ...validUser,
+                    username: 'us',
+                }
                 response = await loginRequest(userData)
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toEqual('User does not exist.')
+                messageShouldBe(response, 'User does not exist.')
+            })
+        })
+
+        describe('when password is invalid', () => {
+            let response;
+
+            beforeAll(async () => {
+                const userData = {
+                    ...validUser,
+                    password: 'pas',
+                }
+
+                response = await loginRequest(userData)
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'User does not exist.')
             })
         })
     })

@@ -1,11 +1,11 @@
 const app = require('../app.js');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, getToken, createValidUser } = require('./testApi.js');
+const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, tryCreateValidUser } = require('./testApi.js');
 
 const OneTimeToken = require('../models/oneTimeToken.js');
 
 beforeAll(async () => {
-    await createValidUser();
+    await tryCreateValidUser();
 })
 afterAll(done => {
     mongoose.connection.close()

@@ -87,14 +87,14 @@ const getToken = async (app) => {
 }
 
 let isUserCreated = false;
-const createValidUser = async () => {
+const tryCreateValidUser = async () => {
     if (!isUserCreated) {
         try {
             const user = new User({ ...validUser, isActivated: true });
             await user.save();
-            isUserCreated = true;
         } catch {
-            // User is exist.
+            // User already exists.
+        } finally {
             isUserCreated = true;
         }
     }
@@ -110,5 +110,5 @@ module.exports = {
     messageShouldBe,
     makeHttpRequest,
     getToken,
-    createValidUser,
+    tryCreateValidUser,
 }

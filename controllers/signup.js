@@ -43,7 +43,6 @@ exports.signup = async (req, res, next) => {
 const createOneTimeToken = async (creator) => {
     const oneTimeToken = await oneTimeTokenFunctions.createOneTimeToken(creator);
     const url = oneTimeTokenFunctions.createUrl(oneTimeToken);
-    console.log(url);
     return oneTimeToken;
 }
 
