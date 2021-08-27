@@ -14,6 +14,7 @@ const refreshRequest = (customCookie) => {
         method: 'GET',
         endpoint: '/refresh',
         customCookie: customCookie,
+        isIncludeToken: true
     });
 }
 

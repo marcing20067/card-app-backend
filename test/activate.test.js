@@ -2,8 +2,8 @@ const app = require('../app.js');
 const mongoose = require('mongoose');
 const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, getToken, createValidUser } = require('./testApi.js');
 
-const base64url = require('base64url');
-const OneTimeToken = {};
+const OneTimeToken = require('../models/oneTimeToken.js');
+
 beforeAll(async () => {
     await createValidUser();
 })
@@ -12,74 +12,20 @@ afterAll(done => {
     done()
 })
 
-const activeRequest = (customToken = undefined) => {
-    return makeHttpRequest(app, {
-        method: 'GET',
-        endpoint: '/activate',
-        isIncludeToken: true,
-        customToken: customToken
-    });
-}
-const activateUserRequest = (oneTimeToken, customToken = undefined) => {
+const activateRequest = (oneTimeToken) => {
     return makeHttpRequest(app, {
         method: 'GET',
         endpoint: `/activate/${oneTimeToken}`,
-        isIncludeToken: true,
-        customToken: customToken
     });
 }
 
-describe.skip('/active GET', () => {
-    describe('correct request', () => {
-        let response;
-        beforeAll(async () => {
-            response = activeRequest();
-        })
-
-        it('basic correct request tests', () => {
-            responseStatusShouldBe(response, 200);
-            responseTypeShouldContainJson(response);
-        })
-
-        it('message should be exist', () => {
-            responseBodyShouldContainProperty(response, 'message');
-        })
-
-        it('message should be correct', () => {
-            const message = response.body.message;
-            expect(message).toEqual('Check your email.')
-        })
-    })
-
-    describe('wrong request', () => {
-        describe('request with wrong access token', () => {
-            let response;
-            beforeAll(async () => {
-                const wrongToken = 'wrongToken';
-                response = await activeRequest(wrongToken);
-            })
-
-            it('basic wrong request tests', () => {
-                responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid authentication.')
-            })
-        })
-    })
-})
-
-describe.skip('/active/:token GET', () => {
+describe('/activate/:token GET', () => {
     describe('correct request', () => {
         let response;
 
         beforeAll(async () => {
-            const oneTimeToken = await getOneTimeToken();
-            response = await activateUserRequest(oneTimeToken);
+            const oneTimeToken = await findOrCreateOneTimeToken();
+            response = await activateRequest(oneTimeToken.token);
         })
 
         it('basic correct request tests', () => {
@@ -98,46 +44,47 @@ describe.skip('/active/:token GET', () => {
     })
 
     describe('wrong request', () => {
-        describe('request with wrong access token', () => {
-            beforeAll(async () => {
-                const wrongAccessToken = 'wrongToken';
-                const wrongOneTimeToken = 'wrongToken'
-                response = await activateUserRequest(wrongOneTimeToken, wrongAccessToken);
-            })
-
-            it('basic wrong request tests', () => {
-                responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
-            })
-        })
-
         describe('request with wrong oneTimeToken', () => {
             beforeAll(async () => {
                 const wrongOneTimeToken = 'wrongToken';
-                response = await activateUserRequest(wrongOneTimeToken);
+                response = await activateRequest(wrongOneTimeToken);
             })
 
             it('basic wrong request tests', () => {
                 responseTypeShouldContainJson(response);
                 responseStatusShouldBe(response, 400);
                 responseBodyShouldContainProperty(response, 'message');
+            })
+
+            it('message should be correct', () => {
+                const message = response.body.message;
+                expect(message).toBe('Token does not exist.');
             })
         })
     })
 
-    const getOneTimeToken = async () => {
-        const userId = await getUserId();
-        const oneTimeToken = await OneTimeToken.findOne({
-            creator: userId
-        })
-        return oneTimeToken.token;
+    const findOrCreateOneTimeToken = async () => {
+        const randomToken = 'dasud92ddsay9dsa12IYDsuadia'; 
+        const oneTimeTokenData = {
+            token: randomToken,
+            endOfValidity: getEndOfValidity(),
+            creator: '6128d701eeb2eb4320fec7aa'
+        }
+        try {
+            const oneTimeToken = await OneTimeToken.findOne(oneTimeTokenData);
+
+            if (!oneTimeToken) {
+                const newOneTimeToken = new OneTimeToken(oneTimeTokenData);
+                await newOneTimeToken.save();
+            }
+        } finally {
+            return oneTimeTokenData;
+        }
     }
 
-    const getUserId = async () => {
-        const accessToken = await getToken(app);
-        const encodedUserId = accessToken.split('.')[0];
-        const decodedUserId = base64url.decode(encodedUserId);
-        return decodedUserId;
+    const getEndOfValidity = () => {
+        const now = new Date();
+        const validEndOfValidity = new Date().setMinutes(now.getMinutes() + 10);
+        return validEndOfValidity;
     }
 })

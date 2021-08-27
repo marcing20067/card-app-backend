@@ -49,11 +49,14 @@ describe('/signup POST', () => {
             responseStatusShouldBe(response, 201);
         })
 
-        it('response body should contain user', () => {
-            const createdUser = response.body;
-            expect(createdUser.hasOwnProperty('_id'))
-            expect(createdUser.username).toEqual(newUser.username);
-            expect(createdUser.password).toEqual(newUser.password);
+        it('response body should contain message', () => {
+            const message = response.body.message;
+            expect(message).toBeDefined();
+        })
+
+        it('message should be contain', () => {
+            const message = response.body.message;
+            expect(message).toBe('Check your email.')
         })
     })
 

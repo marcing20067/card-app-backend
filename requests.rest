@@ -1,11 +1,13 @@
 ###
-POST http://localhost:3000/login
+POST http://localhost:3000/signup
 Content-Type: application/json
 
 {
-    "email": "test@example.com",
-    "username": "test",
-    "password": "test123345"
+    "email": "kox@koxuwa.com",
+    "username": "koxuwa",
+    "password": "koxuwa123"
 }
 ###
 GET http://localhost:3000/refresh
+###
+GET http://localhost:3000/activate/592b1ccc7d4f07

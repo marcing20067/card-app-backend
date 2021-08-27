@@ -1,30 +1,36 @@
 const crypto = require('crypto');
 const OneTimeToken = require('../models/oneTimeToken');
+const config = require('../config/config');
 
 exports.createOneTimeToken = async (creator) => {
-    const oneTimeTokenData = {
-        creator: creator,
-        token: 'token',
-        endOfValidity: 0
-    }
+    const oneTimeTokenData = createOneTimeTokenData(creator);
     const oneTimeToken = new OneTimeToken(oneTimeTokenData);
     const createdOneTimeToken = await oneTimeToken.save()
     return createdOneTimeToken;
 }
 
-exports.updateOneTimeToken = async (creator) => {
-    // TODO: Move this to config file
+exports.generateNewOneTimeToken = async (oldToken, creator) => {
+    const newOneTimeTokenData = createOneTimeTokenData(creator);
+    try {
+        await OneTimeToken.updateOne({ token: oldToken}, newOneTimeTokenData);
+        return newOneTimeTokenData;
+    } catch {
+        throw new Error();
+    }
+}
+
+const createOneTimeTokenData = (creator) => {
     const tokenLength = 15;
-    const oneTimeTokenExpiresInMinutes = 30;
+    const oneTimeTokenExpiresInWeeks = 1;
 
     const token = generateToken(tokenLength);
-    const endOfValidity = generateEndOfValidity(oneTimeTokenExpiresInMinutes);
+    const endOfValidity = generateEndOfValidity(oneTimeTokenExpiresInWeeks);
     const oneTimeTokenData = {
-        creator: creator,
         token: token,
-        endOfValidity: endOfValidity
+        endOfValidity: endOfValidity,
+        creator: creator
     }
-    const updatedOneTimeToken = OneTimeToken.updateOne({ creator: creator }, oneTimeTokenData);
+
     return oneTimeTokenData;
 }
 
@@ -32,11 +38,29 @@ const generateToken = (tokenLength) => {
     const token = crypto.randomBytes(tokenLength / 2).toString('hex');
     return token;
 }
-exports.generateToken = generateToken;
 
-const generateEndOfValidity = (oneTimeTokenExpiresInMinutes) => {
+const generateEndOfValidity = (oneTimeTokenExpiresInWeeks) => {
     const now = new Date();
-    const endOfValidity = new Date().setMinutes(now.getMinutes() + oneTimeTokenExpiresInMinutes);
+    const endOfValidity = new Date().setDate(now.getDate() + oneTimeTokenExpiresInWeeks * 7);
     return endOfValidity;
 }
-exports.generateEndOfValidity = generateEndOfValidity;
+
+exports.createOneTimeTokenData = createOneTimeTokenData;
+
+
+exports.oneTimeTokenHasExpired = (oneTimeToken) => {
+    const now = Date.now();
+    return now > oneTimeToken.endOfValidity;
+}
+
+const findOneTimeToken = async (token) => {
+    const findedOneTimeToken = await OneTimeToken.findOne({ token: token });
+    return findedOneTimeToken;
+}
+
+exports.findOneTimeToken = findOneTimeToken;
+
+exports.createUrl = (oneTimeToken) => {
+    const token = oneTimeToken.token;
+    return `${config.FRONTEND_URL}/${token}`;
+}

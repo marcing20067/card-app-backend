@@ -85,7 +85,7 @@ let isUserCreated = false;
 const createValidUser = async () => {
     if (!isUserCreated) {
         try {
-            const user = new User({ ...validUser, isActivated: false });
+            const user = new User({ ...validUser, isActivated: true });
             await user.save();
             isUserCreated = true;
         } catch {

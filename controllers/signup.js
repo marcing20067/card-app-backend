@@ -18,8 +18,8 @@ exports.signup = async (req, res, next) => {
     }
     try {
         const createdUser = await createUser(userData);
-        const createdOneTimeToken = await createOneTimeToken(createdUser);
-        res.status(201).send(createdUser);
+        const createdOneTimeToken = await createOneTimeToken(createdUser._id);
+        res.status(201).send({ message: 'Check your email.'});
     } catch (err) {
         if (isUsernameTakenErrorAndSendError(res, err)) {
             return;
@@ -40,9 +40,10 @@ exports.signup = async (req, res, next) => {
     }
 }
 
-const createOneTimeToken = async (userData) => {
-    const creator = userData._id;
+const createOneTimeToken = async (creator) => {
     const oneTimeToken = await oneTimeTokenFunctions.createOneTimeToken(creator);
+    const url = oneTimeTokenFunctions.createUrl(oneTimeToken);
+    console.log(url);
     return oneTimeToken;
 }
 
