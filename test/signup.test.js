@@ -1,4 +1,4 @@
-const { makeHttpRequest, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, newUser, createValidUser } = require('./testApi.js');
+const { makeHttpRequest, responseStatusShouldBe, responseTypeShouldContainJson, newUser, createValidUser, messageShouldBe } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 const User = require('../models/user');
@@ -21,12 +21,16 @@ describe('/signup POST', () => {
     }
 
     beforeAll(async () => {
+        await ifUserExistsDeleteIt();
+    })
+
+    const ifUserExistsDeleteIt = async () => {
         const user = await findUser({ username: newUser.username });
         if (user) {
             const userId = user._id;
             await deleteUser(userId);
         }
-    })
+    }
 
     const findUser = async (userData) => {
         const findedUser = await User.findOne(userData);
@@ -37,135 +41,144 @@ describe('/signup POST', () => {
         await User.deleteOne({ _id: userId });
     }
 
-    describe('correct request', () => {
+    describe('when request is correct', () => {
         let response;
-
         beforeAll(async () => {
             response = await signupRequest(newUser);
         })
 
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 201', () => {
             responseStatusShouldBe(response, 201);
         })
 
-        it('response body should contain message', () => {
-            const message = response.body.message;
-            expect(message).toBeDefined();
+        it('response body should be correct', () => {
+            messageShouldBe(response, 'Check your email.')
         })
 
-        it('message should be contain', () => {
-            const message = response.body.message;
-            expect(message).toBe('Check your email.')
+        it('user should exist in db', async () => {
+            const findedUser = await findUser(newUser);
+            expect(findedUser).not.toBe(null);
         })
     })
 
-    describe('invalid request', () => {
-        describe('username is too short', () => {
+    describe('when request is invalid', () => {
+        describe('when username is too short', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    email: newUser.email,
+                    ...newUser,
                     username: 's',
-                    password: newUser.password
                 }
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct"', () => {
-                expect(response.body.message).toEqual("Username is too short.")
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Username is too short.')
             })
         })
 
-        describe('password is too short', () => {
+        describe('when password is too short', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    email: newUser.email,
-                    username: newUser.username,
+                    ...newUser,
                     password: 'p'
                 }
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual("Password is too short.")
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Password is too short.')
             })
         })
 
-        describe('user data is empty object', () => {
+        describe('when userData is empty object', () => {
             let response;
             beforeAll(async () => {
                 const userData = {};
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct"', () => {
-                expect(response.body.message).toEqual("Username is required.");
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Username is required.')
             })
         })
 
-
-        describe('without password', () => {
+        describe('when only password is undefined', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    email: newUser.email,
-                    username: newUser.username
+                    ...newUser,
+                    password: undefined,
                 };
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual('Password is required.')
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Password is required.')
             })
         })
 
-        describe('without username', () => {
+        describe('when only username is undefined', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    email: newUser.email,
-                    password: newUser.password
+                    ...newUser,
+                    username: undefined,
                 };
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual('Username is required.')
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Username is required.')
             })
         })
-        describe('without email', () => {
+
+        describe('when only email is undefined', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
@@ -175,62 +188,69 @@ describe('/signup POST', () => {
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual('Email is required.')
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Email is required.')
             })
         })
 
-        describe('with invalid email', () => {
+        describe('when email is invalid', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    username: newUser.username,
-                    password: newUser.password,
+                    ...newUser, 
                     email: 'email'
                 };
                 response = await signupRequest(userData);
             });
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual('Invalid request data.')
+    
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Invalid request data.')
             })
         })
 
-        describe('username is already taken', () => {
+        describe('when username is already taken', () => {
             let response;
 
             beforeAll(async () => {
-                await createUser();
+                await tryCreateUser();
                 response = await signupRequest(newUser);
             })
 
-            const createUser = async () => {
+            const tryCreateUser = async () => {
                 try {
                     const user = new User({ ...newUser, isActivated: false });
-                    const createdUser = await user.save();
-                } catch {}
+                    await user.save();
+                } catch {
+                    // User already exists
+                }
             }
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 409);
-                responseBodyShouldContainProperty(response, 'message');
             })
-
-            it('message should be correct', () => {
-                expect(response.body.message).toEqual('Username is already taken.')
+    
+            it('response status should be 409', () => {
+                responseStatusShouldBe(response, 409);
+            })
+    
+            it('response body should be correct', () => {
+                messageShouldBe(response, 'Username is already taken.')
             })
         })
     })

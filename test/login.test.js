@@ -34,9 +34,6 @@ describe('/login POST', () => {
         })
         
         it('response body should contain tokenData', () => {
-            responseBodyShouldContainProperty(response, 'refreshToken')
-            responseBodyShouldContainProperty(response, 'refreshToken')
-            responseBodyShouldContainProperty(response, 'refreshTokenExpiresIn')
             responseBodyShouldContainProperty(response, 'accessToken')
             responseBodyShouldContainProperty(response, 'accessTokenExpiresIn')
         })

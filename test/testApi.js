@@ -42,7 +42,12 @@ const responseTypeShouldContainJson = (response) => {
 }
 
 const responseBodyShouldContainProperty = (response, property) => {
-    expect(response.body.hasOwnProperty(property));
+    expect(response.body).toHaveProperty(property);
+}
+
+const messageShouldBe = (response, correctMessage) => {
+    const message = response.body.message;
+    expect(message).toBe(correctMessage);
 }
 
 const makeHttpRequest = async (app, options) => {
@@ -102,7 +107,8 @@ module.exports = {
     responseStatusShouldBe,
     responseTypeShouldContainJson,
     responseBodyShouldContainProperty,
+    messageShouldBe,
     makeHttpRequest,
     getToken,
-    createValidUser
+    createValidUser,
 }
