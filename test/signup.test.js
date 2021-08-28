@@ -255,19 +255,23 @@ describe('/signup POST', () => {
 
         describe('when username is already taken', () => {
             let response;
-
             beforeAll(async () => {
-                await tryCreateUser();
+                if (!(await isUserExists())) {
+                    await createUser({ ...newUser, isActivated: true })
+                }
+            })
+            beforeAll(async () => {
                 response = await signupRequest(newUser);
             })
 
-            const tryCreateUser = async () => {
-                try {
-                    const user = new User({ ...newUser, isActivated: false });
-                    await user.save();
-                } catch {
-                    // User already exists
-                }
+            const isUserExists = async (userData) => {
+                const findedUser = await User.findOne(userData);
+                return !!findedUser;
+            }
+
+            const createUser = async (userData) => {
+                const user = new User(userData);
+                await user.save();
             }
 
             it('type of response should contain json', () => {

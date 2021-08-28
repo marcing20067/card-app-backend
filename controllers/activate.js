@@ -10,9 +10,9 @@ exports.activate = async (req, res) => {
         if (!findedOneTimeToken) {
             throw new Error('Token does not exist.');
         }
-        const oneTimeTokenHasExpired = oneTimeTokenFunctions.oneTimeTokenHasExpired(token);
+        const oneTimeTokenHasExpired = oneTimeTokenFunctions.oneTimeTokenHasExpired(findedOneTimeToken);
         if (oneTimeTokenHasExpired) {
-            const newOneTimeToken = oneTimeTokenFunctions.generateNewOneTimeToken(token);
+            const newOneTimeToken = oneTimeTokenFunctions.generateNewOneTimeToken(token, findedOneTimeToken.creator);
             const url = oneTimeTokenFunctions.createUrl(newOneTimeToken);
             res.send({ message: 'The previous token has expired. Check the email and go to the new link.' })
             return;
