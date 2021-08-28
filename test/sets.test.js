@@ -1,4 +1,4 @@
-const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, tryCreateValidUser } = require('./testApi.js');
+const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, tryCreateValidUser } = require('./testApi.js');
 const app = require('../app');
 const mongoose = require('mongoose');
 const Set = require('../models/set');
@@ -14,46 +14,49 @@ beforeAll(async () => {
 })
 
 describe('/sets GET', () => {
-    describe('correct request', () => {
+    const setsRequest = (extraOptions) => {
+        return makeHttpRequest(app, {
+            method: 'GET',
+            endpoint: '/sets',
+            isIncludeToken: true,
+            ...extraOptions
+        })
+    }
+
+    describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
             response = await setsRequest();
         })
 
-        const setsRequest = () => {
-            return makeHttpRequest(app, {
-                method: 'GET',
-                endpoint: '/sets',
-                isIncludeToken: true
-            })
-        }
-
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 200', () => {
             responseStatusShouldBe(response, 200);
         })
     })
-    describe('wrong request', () => {
-        describe('request with wrong token', () => {
+    describe('when request is wrong', () => {
+        describe('when access token is wrong', () => {
             let response;
 
             beforeAll(async () => {
-                const wrongToken = 'wrongToken';
-                response = await setsRequestWithCustomToken(wrongToken);
+                response = await setsRequest({
+                    customToken: 'wrongToken'
+                });
             })
 
-            const setsRequestWithCustomToken = async (customToken) => {
-                return makeHttpRequest(app, {
-                    method: 'GET',
-                    endpoint: '/sets',
-                    customToken: customToken,
-                })
-            }
-
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 401', () => {
                 responseStatusShouldBe(response, 401);
-                responseBodyShouldContainProperty(response, 'message');
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'Invalid authorization.')
             })
         })
     })
@@ -77,11 +80,12 @@ const findUser = async () => {
 }
 
 describe('/sets/:setId GET', () => {
-    const getSet = (setId) => {
+    const getSetRequest = (setId, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'GET',
             endpoint: `/sets/${setId}`,
-            isIncludeToken: true
+            isIncludeToken: true,
+            ...extraOptions
         });
     }
 
@@ -90,95 +94,159 @@ describe('/sets/:setId GET', () => {
         beforeAll(async () => {
             const set = await findOrCreateSet();
             const setId = set._id;
-            response = await getSet(setId);
+            response = await getSetRequest(setId);
         })
 
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 200', () => {
             responseStatusShouldBe(response, 200);
         })
 
         it('response body should be a set', () => {
-            expect(response.body.hasOwnProperty('_id'))
-            expect(response.body.hasOwnProperty('name'))
-            expect(response.body.hasOwnProperty('cards'))
-            expect(response.body.hasOwnProperty('stats'))
-            expect(response.body.hasOwnProperty('creator'))
+            responseBodyShouldContainProperty(response, '_id');
+            responseBodyShouldContainProperty(response, 'name');
+            responseBodyShouldContainProperty(response, 'cards');
+            responseBodyShouldContainProperty(response, 'stats');
+            responseBodyShouldContainProperty(response, 'creator');
         })
     })
 
-    describe('wrong request', () => {
+    describe('when request is wrong', () => {
         describe('request with wrong setId', () => {
             let response;
             beforeAll(async () => {
                 const wrongSetId = 'wrongSetId';
-                response = await getSet(wrongSetId);
+                response = await getSetRequest(wrongSetId);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Invalid request data.');
+                messageShouldBe(response, 'Invalid request data.')
+            })
+        })
+
+        describe('when access token is invalid', () => {
+            let response;
+            beforeAll(async () => {
+                response = await getSetRequest(null, {
+                    customToken: 'wrong',
+                });
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 401', () => {
+                responseStatusShouldBe(response, 401);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'Invalid authorization.')
             })
         })
     })
 })
 
 describe('/sets/:setId PUT', () => {
-    const putSetRequest = (setId, newSet) => {
+    const putSetRequest = (setId, newSet, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'PUT',
             endpoint: `/sets/${setId}`,
             isIncludeToken: true,
-            data: newSet
+            data: newSet,
+            ...extraOptions
         });
     }
 
-    describe('correct request', () => {
+    describe('when request is correct', () => {
+        let setId;
+        let response;
         beforeAll(async () => {
             const set = await findOrCreateSet();
-            const setId = set._id;
+            setId = set._id;
             const newSet = { ...validSet, name: 'edited!' };
             response = await putSetRequest(setId, newSet);
         })
 
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 200', () => {
             responseStatusShouldBe(response, 200);
         })
 
         it('response body should contain set', () => {
-            expect(response.body.hasOwnProperty('_id'));
-            expect(response.body.hasOwnProperty('name'));
+            responseBodyShouldContainProperty(response, '_id')
+            responseBodyShouldContainProperty(response, 'name')
+            responseBodyShouldContainProperty(response, 'cards')
+            responseBodyShouldContainProperty(response, 'stats')
+            responseBodyShouldContainProperty(response, 'creator')
+
+        })
+
+        it('name of edited set should be "edited!"', () => {
             expect(response.body.name).toEqual('edited!');
-            expect(response.body.hasOwnProperty('cards'));
-            expect(response.body.hasOwnProperty('stats'));
-            expect(response.body.hasOwnProperty('creator'));
+        })
+
+        it('updated set should exists in db', () => {
+            const findedSet = Set.findOne({ name: 'edited!', _id: setId });
+            expect(findedSet).not.toBe(null);
         })
     })
-    describe('wrong request', () => {
-        describe('request with wrong :setId param', () => {
+    describe('when request is wrong', () => {
+        describe('when access token is invalid', () => {
+            let response;
+            beforeAll(async () => {
+                response = await putSetRequest(null, null, {
+                    customToken: 'wrong',
+                });
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 401', () => {
+                responseStatusShouldBe(response, 401);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'Invalid authorization.')
+            })
+        })
+
+        describe('when :setId param is wrong', () => {
             beforeAll(async () => {
                 const wrongSetId = 'wrongSetId';
                 const newSet = { ...validSet, name: 'edited!' };
                 response = await putSetRequest(wrongSetId, newSet);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Invalid request data.')
+                messageShouldBe(response, 'Invalid request data.')
             })
         })
-        describe('request with empty data', () => {
+        describe('when new set is undefined', () => {
             beforeAll(async () => {
                 const set = await findOrCreateSet();
                 const setId = set._id;
@@ -186,17 +254,19 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Name is required.')
+                messageShouldBe(response, 'Name is required.')
             })
         })
-        describe('request with empty name', () => {
+        describe('when only name is undefined', () => {
             beforeAll(async () => {
                 const set = await findOrCreateSet();
                 const setId = set._id;
@@ -204,18 +274,20 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Name is required.')
+                messageShouldBe(response, 'Name is required.')
             })
         })
 
-        describe('request with empty cards', () => {
+        describe('when only cards is undefined', () => {
             beforeAll(async () => {
                 const set = await findOrCreateSet();
                 const setId = set._id;
@@ -223,18 +295,20 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Cards is required.')
+                messageShouldBe(response, 'Cards is required.')
             })
         })
 
-        describe('request with empty stats', () => {
+        describe('when only stats is undefined', () => {
             beforeAll(async () => {
                 const set = await findOrCreateSet();
                 const setId = set._id;
@@ -242,34 +316,37 @@ describe('/sets/:setId PUT', () => {
                 response = await putSetRequest(setId, newSet);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Stats is required.')
+                messageShouldBe(response, 'Stats is required.')
             })
         })
     })
 })
 
 describe('/sets/:setId DELETE', () => {
-    const deleteSet = (setId) => {
+    const deleteSetRequest = (setId, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'DELETE',
             endpoint: `/sets/${setId}`,
-            isIncludeToken: true
+            isIncludeToken: true,
+            ...extraOptions
         });
     }
 
-    describe('correct request', () => {
+    describe('when request is request', () => {
         let response;
         beforeAll(async () => {
             const createdSet = await createSet();
             const createdSetId = createdSet._id;
-            response = await deleteSet(createdSetId);
+            response = await deleteSetRequest(createdSetId);
         })
 
         const createSet = async () => {
@@ -278,137 +355,202 @@ describe('/sets/:setId DELETE', () => {
             return addedSet;
         }
 
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
-            responseStatusShouldBe(response, 200);
         })
 
-        it('response type should contain json', () => {
-            expect(/json/.test(response.headers['content-type']))
-        });
+        it('response status should be 200', () => {
+            responseStatusShouldBe(response, 200);
+        })
     })
 
     describe('wrong request', () => {
+        describe('when access token is invalid', () => {
+            let response;
+            beforeAll(async () => {
+                response = await deleteSetRequest(null, {
+                    customToken: 'wrong',
+                });
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 401', () => {
+                responseStatusShouldBe(response, 401);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'Invalid authorization.')
+            })
+        })
+
         describe('request with wrong :setId param', () => {
             let response;
             beforeAll(async () => {
                 const wrongSetId = '3213213wrongparam123123';
-                response = await deleteSet(wrongSetId);
+                response = await deleteSetRequest(wrongSetId);
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                expect(response.body.message).toEqual('Invalid request data.');
+                messageShouldBe(response, 'Invalid request data.')
             })
         })
     })
 })
 
-
-
 describe('/sets/:setId POST', () => {
-    const createSetRequest = (set) => {
+    const createSetRequest = (newSet, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'POST',
             endpoint: '/sets',
             isIncludeToken: true,
-            data: set
+            data: newSet,
+            ...extraOptions
         })
     }
 
-    describe('correct request', () => {
+    describe('when request is correct', () => {
         let response;
+        let createdSetId;
         beforeAll(async () => {
             response = await createSetRequest(validSet);
+            createdSetId = response.body._id;
         })
 
-        it('basic correct request tests', () => {
+        afterAll(async () => {
+            await deleteSet({
+                _id: createdSetId
+            })
+        })
+
+        const deleteSet = async (setData) => {
+            await Set.deleteOne(setData)
+        }
+
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 201', () => {
             responseStatusShouldBe(response, 201);
         })
 
-        it('response body should be set', () => {
+        it('response body should contain set data', () => {
             responseBodyShouldContainProperty(response, '_id')
             responseBodyShouldContainProperty(response, 'name')
             responseBodyShouldContainProperty(response, 'cards')
             responseBodyShouldContainProperty(response, 'stats')
             responseBodyShouldContainProperty(response, 'creator')
         })
+
+        it('created set should exists in db', async () => {
+            const findedSet = await Set.findOne({ _id: createdSetId })
+            expect(findedSet).not.toBe(null);
+        })
     })
 
-    describe('wrong request', () => {
-        describe('request with empty name', () => {
+    describe('when request is wrong', () => {
+        describe('when access token is invalid', () => {
+            let response;
+            beforeAll(async () => {
+                response = await createSetRequest(null, {
+                    customToken: 'wrong',
+                });
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 401', () => {
+                responseStatusShouldBe(response, 401);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'Invalid authorization.')
+            })
+        })
+
+        describe('when only name is required', () => {
             let response;
             beforeAll(async () => {
                 response = await createSetRequest({ ...validSet, name: undefined });
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message
-                expect(message).toEqual('Name is required.')
+                messageShouldBe(response, 'Name is required.')
             })
         })
-        describe('request with empty cards', () => {
+        describe('when only cards is undefined', () => {
             let response;
             beforeAll(async () => {
                 response = await createSetRequest({ ...validSet, cards: undefined });
             })
-           
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message
-                expect(message).toEqual('Cards is required.')
+                messageShouldBe(response, 'Cards is required.')
             })
         })
-        describe('request with empty stats', () => {
+        describe('when only stats is undefined', () => {
             let response;
             beforeAll(async () => {
                 response = await createSetRequest({ ...validSet, stats: undefined });
             })
-            
-            it('basic wrong request tests', () => {
+
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message
-                expect(message).toEqual('Stats is required.')
+                messageShouldBe(response, 'Stats is required.')
             })
         })
 
-        describe('request with too short name', () => {
+        describe('when name is too short', () => {
             let response;
             beforeAll(async () => {
-                response = await createSetRequest({ ...validSet, name: 'nl' });
+                response = await createSetRequest({ ...validSet, name: 'n' });
             })
-           
-            it('basic wrong request tests', () => {
+
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
                 responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
             })
 
             it('message should be correct', () => {
-                const message = response.body.message
-                expect(message).toEqual('Name is too short.')
+                messageShouldBe(response, 'Name is too short.')
             })
         })
     })
