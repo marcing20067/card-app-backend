@@ -1,4 +1,4 @@
-const { validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, tryCreateValidUser} = require('./testApi.js');
+const { validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, tryCreateValidUser } = require('./testApi.js');
 const app = require('../app.js');
 const mongoose = require('mongoose');
 beforeAll(async () => {
@@ -9,22 +9,31 @@ afterAll(done => {
     done()
 })
 
-const refreshRequest = (customCookie) => {
-    return makeHttpRequest(app, {
-        method: 'GET',
-        endpoint: '/refresh',
-        customCookie: customCookie,
-        isIncludeToken: true
-    });
-}
 
 describe('/refresh GET', () => {
-    describe('correct request', () => {
+    const refreshRequest = (extraOptions) => {
+        return makeHttpRequest(app, {
+            method: 'GET',
+            endpoint: '/refresh',
+            isIncludeToken: true,
+            ...extraOptions
+        });
+    }
+
+    describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
             const refreshTokenCookie = await getRefreshTokenCookie();
-            response = await refreshRequest(refreshTokenCookie);
+            response = await refreshRequest({
+                customCookie: refreshTokenCookie
+            });
         })
+
+        const getRefreshTokenCookie = async () => {
+            const cookieResponse = await loginRequest(validUser);
+            const refreshTokenCookie = cookieResponse.header['set-cookie'][0].split(';')[0]
+            return refreshTokenCookie;
+        }
 
         const loginRequest = (userData) => {
             return makeHttpRequest(app, {
@@ -34,38 +43,57 @@ describe('/refresh GET', () => {
             })
         }
 
-        const getRefreshTokenCookie = async () => {
-            const cookieResponse = await loginRequest(validUser);
-            const refreshTokenCookie = cookieResponse.header['set-cookie'][0].split(';')[0]
-            return refreshTokenCookie;
-        }
-
-        it('basic correct request tests', () => {
+        it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
+        })
+
+        it('response status should be 201', () => {
             responseStatusShouldBe(response, 201);
         })
 
-        it('response body should contain access token data', () => {
-            expect(response.body.hasOwnProperty('accessToken'));
-            expect(response.body.hasOwnProperty('accessTokenExpiresIn'))
+        it('response body should contain access accessToken and accessTokenExpiresIn', () => {
+            responseBodyShouldContainProperty(response, 'accessToken')
+            responseBodyShouldContainProperty(response, 'accessTokenExpiresIn')
         })
     })
 
-    describe('invalid request', () => {
-        describe('refresh token doesn\'t exist in cookie', () => {
+    describe('when request is invalid', () => {
+        describe('when access token is invalid', () => {
             beforeAll(async () => {
-                response = await refreshRequest();
+                response = await refreshRequest({
+                    customToken: 'wrongToken'
+                });
             })
 
-            it('basic wrong request tests', () => {
+            it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
-                responseStatusShouldBe(response, 400);
-                responseBodyShouldContainProperty(response, 'message');
+            })
+
+            it('response status should be 401', () => {
+                responseStatusShouldBe(response, 401);
             })
 
             it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toEqual('Invalid refresh token.');
+                messageShouldBe(response, 'Invalid authorization.')
+            })
+        })
+        describe('when refresh token doesn\'t exist in cookies', () => {
+            beforeAll(async () => {
+                response = await refreshRequest({
+                    customCookie: null
+                });
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 401', () => {
+                responseStatusShouldBe(response, 400);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'Invalid refresh token.')
             })
         })
     })

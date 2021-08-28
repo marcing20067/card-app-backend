@@ -1,6 +1,6 @@
 const app = require('../app.js');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, tryCreateValidUser, messageShouldBe } = require('./testApi.js');
+const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, tryCreateValidUser, messageShouldBe } = require('./testApi.js');
 
 const OneTimeToken = require('../models/oneTimeToken.js');
 
