@@ -88,7 +88,7 @@ describe('/activate/:token GET', () => {
             let createdOneTimeToken;
             beforeAll(async () => {
                 const oneTimeToken = await createOneTimeToken({
-                    endOfValidity: 0
+                    endOfValidity: 1
                 });
                 createdOneTimeToken = oneTimeToken;
                 response = await activateRequest(oneTimeToken.token);

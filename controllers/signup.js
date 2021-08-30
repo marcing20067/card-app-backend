@@ -2,7 +2,7 @@ const User = require('../models/user.js');
 const isShortErrorAndSendError = require('../utils/short.js');
 const messages = require('../messages/messages.js');
 const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
-const oneTimeTokenFunctions = require('../utils/oneTimeToken.js');
+const OneTimeToken = require('../utils/oneTimeToken.js');
 
 exports.signup = async (req, res, next) => {
     const userData = {
@@ -39,8 +39,10 @@ exports.signup = async (req, res, next) => {
 }
 
 const createOneTimeToken = async (creator) => {
-    const oneTimeToken = await oneTimeTokenFunctions.createOneTimeToken(creator);
-    const url = oneTimeTokenFunctions.createUrl(oneTimeToken);
+    const oneTimeToken = new OneTimeToken(creator);
+    await oneTimeToken.save();
+    const url = oneTimeToken.createUrl(oneTimeToken);
+    console.log(url);
     return oneTimeToken;
 }
 

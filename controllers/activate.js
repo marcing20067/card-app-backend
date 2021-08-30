@@ -1,18 +1,18 @@
-const oneTimeTokenFunctions = require('../utils/oneTimeToken');
+const OneTimeToken = require('../utils/oneTimeToken');
 const User = require('../models/user');
 const messages = require('../messages/messages');
 
 exports.activate = async (req, res) => {
     const token = req.params.oneTimeToken;
     try {
-        const findedOneTimeToken = await oneTimeTokenFunctions.findOneTimeToken(token);
+        const findedOneTimeToken = await OneTimeToken.findOne(token);
         if (!findedOneTimeToken) {
             throw new Error(messages.oneTimeToken.invalidData);
         }
 
-        const oneTimeTokenHasExpired = oneTimeTokenFunctions.oneTimeTokenHasExpired(findedOneTimeToken);
+        const oneTimeTokenHasExpired = findedOneTimeToken.hasExpired(findedOneTimeToken);
         if (oneTimeTokenHasExpired) {
-            const newOneTimeToken = oneTimeTokenFunctions.generateNewOneTimeToken(token, findedOneTimeToken.creator);
+            const newOneTimeToken = await OneTimeToken.updateOne(token, findedOneTimeToken.creator);
             sendEmailWithMessage(newOneTimeToken)
             res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated })
             return;
@@ -29,7 +29,9 @@ exports.activate = async (req, res) => {
 }
 
 const sendEmailWithMessage = (oneTimeToken) => {
-    const url = oneTimeTokenFunctions.createUrl(oneTimeToken);
+    console.log(oneTimeToken);
+    const url = oneTimeToken.createUrl();
+    console.log(url);
     // TODO: Send email
 }
 
