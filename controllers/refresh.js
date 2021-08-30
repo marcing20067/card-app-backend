@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
-const config = require('../config/config.js');
-const messages = require('../messages/messages.js');
-const token = require('../utils/token.js');
+const config = require('../config/config');
+const messages = require('../messages/messages');
+const token = require('../utils/token');
 
 exports.refresh = (req, res, next) => {
     const refreshToken = req.cookies.refreshToken;

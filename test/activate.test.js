@@ -1,8 +1,8 @@
-const app = require('../app.js');
+const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, tryCreateValidUser, messageShouldBe } = require('./testApi.js');
+const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, tryCreateValidUser, messageShouldBe } = require('./testApi');
 
-const OneTimeToken = require('../models/oneTimeToken.js');
+const OneTimeToken = require('../models/oneTimeToken');
 
 beforeAll(async () => {
     await tryCreateValidUser();

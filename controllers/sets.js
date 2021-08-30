@@ -1,7 +1,7 @@
-const Set = require('../models/set.js');
-const isAnyPropertyUndefinedAndSendError = require('../utils/required.js')
-const messages = require('../messages/messages.js');
-const isShortErrorAndSendError = require('../utils/short.js');
+const Set = require('../models/set');
+const isAnyPropertyUndefinedAndSendError = require('../utils/required')
+const messages = require('../messages/messages');
+const isShortErrorAndSendError = require('../utils/short');
 
 exports.getSets = async (req, res, next) => {
     const userId = req.userData.id;

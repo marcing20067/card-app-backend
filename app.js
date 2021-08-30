@@ -2,9 +2,9 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const routes = require('./routes.js');
+const routes = require('./routes');
 const cors = require('cors');
-const connectDB = require('./db.js');
+const connectDB = require('./db');
 const app = express();
 
 connectDB()

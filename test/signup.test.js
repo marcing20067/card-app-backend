@@ -1,5 +1,5 @@
-const { makeHttpRequest, responseStatusShouldBe, responseTypeShouldContainJson, newUser, tryCreateValidUser, messageShouldBe } = require('./testApi.js');
-const app = require('../app.js');
+const { makeHttpRequest, responseStatusShouldBe, responseTypeShouldContainJson, newUser, tryCreateValidUser, messageShouldBe } = require('./testApi');
+const app = require('../app');
 const mongoose = require('mongoose');
 const User = require('../models/user');
 const OneTimeToken = require('../models/OneTimeToken');

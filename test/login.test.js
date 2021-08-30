@@ -1,6 +1,6 @@
-const app = require('../app.js');
+const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, messageShouldBe, makeHttpRequest, tryCreateValidUser, validUser } = require('./testApi.js');
+const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, messageShouldBe, makeHttpRequest, tryCreateValidUser, validUser } = require('./testApi');
 beforeAll(async () => {
     await tryCreateValidUser();
 })

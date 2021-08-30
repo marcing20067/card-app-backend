@@ -1,7 +1,7 @@
-const User = require('../models/user.js');
-const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
-const messages = require('../messages/messages.js');
-const token = require('../utils/token.js');
+const User = require('../models/user');
+const isAnyPropertyUndefinedAndSendError = require('../utils/required');
+const messages = require('../messages/messages');
+const token = require('../utils/token');
 
 exports.login = async (req, res, next) => {
     const userData = {

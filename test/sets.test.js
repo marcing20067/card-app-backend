@@ -1,8 +1,8 @@
-const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, tryCreateValidUser } = require('./testApi.js');
+const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, tryCreateValidUser } = require('./testApi');
 const app = require('../app');
 const mongoose = require('mongoose');
 const Set = require('../models/set');
-const User = require('../models/user.js');
+const User = require('../models/user');
 
 afterAll(done => {
     mongoose.connection.close()

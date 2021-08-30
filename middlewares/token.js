@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const config = require('../config/config.js');
+const config = require('../config/config');
 const messages = require('../messages/messages')
 
 const checkTokenAndSetUserData = (req, res, next) => {
