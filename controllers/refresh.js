@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
-const errorTexts = require('../errorTexts/errorTexts.js');
-const invalidRefreshTokenErrorText = errorTexts.controllers.refresh.invalidRefreshToken;
+const messages = require('../messages/messages.js');
 const token = require('../utils/token.js');
 
 exports.refresh = (req, res, next) => {
@@ -15,6 +14,6 @@ exports.refresh = (req, res, next) => {
 
         res.status(201).send({ accessToken: tokenData.accessToken, accessTokenExpiresIn: tokenData.accessTokenExpiresIn, })
     } catch {
-        res.status(400).send({ message: invalidRefreshTokenErrorText })
+        res.status(400).send({ message: messages.jwtToken.invalidRefreshToken })
     }
 }

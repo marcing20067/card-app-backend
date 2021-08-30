@@ -1,7 +1,6 @@
 const User = require('../models/user.js');
 const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
-const errorTexts = require('../errorTexts/errorTexts.js');
-const loginInvalidDataErrorText = errorTexts.controllers.login.invalidData;
+const messages = require('../messages/messages.js');
 const token = require('../utils/token.js');
 
 exports.login = async (req, res, next) => {
@@ -27,7 +26,6 @@ exports.login = async (req, res, next) => {
 
         token.setRefreshTokenInCookie(res, tokenData);
 
-
         const accessTokenData = {
             accessToken: tokenData.accessToken,
             accessTokenExpiresIn: tokenData.accessTokenExpiresIn,
@@ -35,7 +33,7 @@ exports.login = async (req, res, next) => {
 
         res.send(accessTokenData);
     } catch {
-        return res.status(400).send({ message: loginInvalidDataErrorText });
+        return res.status(400).send({ message: messages.user.invalidData });
     }
 }
 

@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const config = require('../config/config.js');
-const errorTexts = require('../errorTexts/errorTexts.js')
-const invalidAuthErrorMessage = errorTexts.invalidAuth;
+const messages = require('../messages/messages')
 
 const checkTokenAndSetUserData = (req, res, next) => {
     try {
@@ -10,7 +9,7 @@ const checkTokenAndSetUserData = (req, res, next) => {
         req.userData = userData;
         next();
     } catch (error) {
-        res.status(401).send({ message: invalidAuthErrorMessage })
+        res.status(401).send({ message: messages.jwtToken.invalidAccessToken })
     }
 }
 

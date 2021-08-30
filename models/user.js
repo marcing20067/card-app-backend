@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');;
 const { Schema } = mongoose;
-const errorTexts = require('../errorTexts/errorTexts');
-const invalidDataErrorText = errorTexts.invalidData;
+const messages = require('../messages/messages');
 
 const User = new Schema({
     username: {
@@ -11,7 +10,7 @@ const User = new Schema({
         validate: {
             validator: value => /[a-z]/i.test(value),
             message: props => {
-                return invalidDataErrorText
+                return messages.global.invalidData
             }
         },
         minLength: 4
@@ -22,7 +21,7 @@ const User = new Schema({
         validate: {
             validator: value => /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i.test(value),
             message: props => {
-                return invalidDataErrorText
+                return messages.global.invalidData
             }
         },
         minLength: 4

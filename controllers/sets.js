@@ -1,8 +1,7 @@
 const Set = require('../models/set.js');
 const isAnyPropertyUndefinedAndSendError = require('../utils/required.js')
-const errorTexts = require('../errorTexts/errorTexts.js');
+const messages = require('../messages/messages.js');
 const isShortErrorAndSendError = require('../utils/short.js');
-const invalidDataErrorText = errorTexts.invalidData;
 
 exports.getSets = async (req, res, next) => {
     const userId = req.userData.id;
@@ -11,7 +10,7 @@ exports.getSets = async (req, res, next) => {
         const findedSets = await Set.find({ creator: userId });
         res.send(findedSets)
     } catch {
-        res.status(400).send({ message: invalidDataErrorText })
+        res.status(400).send({ message: messages.global.invalidData })
     }
 }
 
@@ -24,7 +23,7 @@ exports.getSet = async (req, res, next) => {
         const findedSet = await Set.findOne(filterData);
         res.send(findedSet);
     } catch {
-        res.status(400).send({ message: invalidDataErrorText })
+        res.status(400).send({ message: messages.global.invalidData })
     }
 }
 
@@ -36,7 +35,7 @@ exports.deleteSet = async (req, res, next) => {
         await Set.deleteOne({ _id: setId, creator: userId })
         res.send({})
     } catch {
-        res.status(400).send({ message: invalidDataErrorText })
+        res.status(400).send({ message: messages.global.invalidData })
     }
 }
 
@@ -59,7 +58,7 @@ exports.updateSet = async (req, res, next) => {
         res.send({ ...newSet, _id: setId });
     }
     catch (error) {
-        res.status(400).send({ message: invalidDataErrorText })
+        res.status(400).send({ message: messages.global.invalidData })
     }
 }
 
@@ -87,6 +86,6 @@ exports.addSet = async (req, res, next) => {
                 return;
             }
         }
-        res.status(400).send({ message: invalidDataErrorText })
+        res.status(400).send({ message: messages.global.invalidData })
     }
 }

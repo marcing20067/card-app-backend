@@ -1,9 +1,7 @@
 const User = require('../models/user.js');
 const isShortErrorAndSendError = require('../utils/short.js');
-const errorTexts = require('../errorTexts/errorTexts.js');
+const messages = require('../messages/messages.js');
 const isAnyPropertyUndefinedAndSendError = require('../utils/required.js');
-const invalidDataErrorText = errorTexts.invalidData;
-const usernameTakenErrorText = errorTexts.controllers.signup.usernameTaken;
 const oneTimeTokenFunctions = require('../utils/oneTimeToken.js');
 
 exports.signup = async (req, res, next) => {
@@ -19,7 +17,7 @@ exports.signup = async (req, res, next) => {
     try {
         const createdUser = await createUser(userData);
         const createdOneTimeToken = await createOneTimeToken(createdUser._id);
-        res.status(201).send({ message: 'Check your email.'});
+        res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
     } catch (err) {
         if (isUsernameTakenErrorAndSendError(res, err)) {
             return;
@@ -36,7 +34,7 @@ exports.signup = async (req, res, next) => {
                 return;
             }
         }
-        res.status(400).send({ message: invalidDataErrorText })
+        res.status(400).send({ message: messages.global.invalidData })
     }
 }
 
@@ -54,7 +52,7 @@ const createUser = async (user) => {
 
 const isUsernameTakenErrorAndSendError = (res, err) => {
     if (err.name === 'MongoError' && err.code === 11000) {
-        res.status(409).send({ message: usernameTakenErrorText })
+        res.status(409).send({ message: messages.user.usernameTaken })
         return true;
     }
     return false;
