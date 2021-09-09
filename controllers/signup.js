@@ -41,8 +41,7 @@ exports.signup = async (req, res, next) => {
 const createOneTimeToken = async (creator) => {
     const oneTimeToken = new OneTimeToken(creator);
     await oneTimeToken.save();
-    const url = oneTimeToken.createUrl(oneTimeToken);
-    console.log(url);
+    const url = oneTimeToken.createUrl('activation');
     return oneTimeToken;
 }
 

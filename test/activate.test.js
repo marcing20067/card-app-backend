@@ -1,23 +1,48 @@
 const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, tryCreateValidUser, messageShouldBe } = require('./testApi');
+const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, findOrCreateValidUser, messageShouldBe, validUser } = require('./testApi');
 
 const OneTimeToken = require('../models/oneTimeToken');
+const User = require('../models/user');
 
+let user;
 beforeAll(async () => {
-    await tryCreateValidUser();
+   user = await createUnactivatedUser();
+})
+
+const createUnactivatedUser = async () => {
+    const newUser = new User({
+        username: 'unActivated',
+        password: 'password',
+        email: 'xd@mail.pl',
+        isActivated: false
+    });
+    const createdUser = await newUser.save();
+    return createdUser;
+}
+
+afterAll(async () => {
+    await deleteUser({
+        username: 'unActivated',
+        password: 'password',
+        email: 'xd@mail.pl'
+    })
 })
 
 afterAll(done => {
     mongoose.connection.close()
-    done()
+    done();
 })
 
+const deleteUser = async (filterData) => {
+    await User.deleteOne(filterData);
+}
+
 describe('/activate/:token GET', () => {
-    const activateRequest = (oneTimeToken) => {
+    const activateRequest = (activationToken) => {
         return makeHttpRequest(app, {
             method: 'GET',
-            endpoint: `/activate/${oneTimeToken}`,
+            endpoint: `/activate/${activationToken}`,
         });
     }
 
@@ -25,16 +50,27 @@ describe('/activate/:token GET', () => {
         const createOneTimeToken = async (customTokenData) => {
             const randomToken = 'dasud92ddsay9dsa12IYDsuadia';
             const oneTimeTokenData = {
-                token: randomToken,
-                endOfValidity: getEndOfValidity(),
-                creator: '6128d701eeb2eb4320fec7aa'
+                resetPassword: {
+                    token: randomToken,
+                    endOfValidity: generateEndOfValidity()
+                },
+                resetNickname: {
+                    token: randomToken,
+                    endOfValidity: generateEndOfValidity()
+                },
+                activation: {
+                    token: randomToken,
+                    endOfValidity: generateEndOfValidity()
+                },
+                creator: user._id,
+                ...customTokenData
             }
 
-            if (!(await isOneTimeTokenExists({ token: oneTimeTokenData.token }))) {
-                const newOneTimeToken = new OneTimeToken({ ...oneTimeTokenData, ...customTokenData });
+            if (!(await isOneTimeTokenExists({ creator: user._id }))) {
+                const newOneTimeToken = new OneTimeToken({ ...oneTimeTokenData });
                 await newOneTimeToken.save();
             }
-            return { ...oneTimeTokenData, ...customTokenData };
+            return { ...oneTimeTokenData };
         }
 
         const isOneTimeTokenExists = async (oneTimeTokenData) => {
@@ -42,28 +78,33 @@ describe('/activate/:token GET', () => {
             return !!findedOneTimeToken;
         }
 
-        const getEndOfValidity = () => {
+        const generateEndOfValidity = () => {
             const now = new Date();
             const validEndOfValidity = new Date().setMinutes(now.getMinutes() + 10);
             return validEndOfValidity;
         }
 
+        const deleteOneTimeToken = async (filterData) => {
+            await OneTimeToken.deleteOne(filterData)
+        }
+
         describe('when the token is not expired', () => {
             let response;
-            let createdOneTimeToken;
             beforeAll(async () => {
-                const oneTimeToken = await createOneTimeToken({});
-                createdOneTimeToken = oneTimeToken;
-                response = await activateRequest(oneTimeToken.token);
+                await setisActivatedToValueForUser(false)
+            })
+            const setisActivatedToValueForUser = async (value) => {
+                await User.updateOne({ _id: user._id }, { $set: { isActivated: value}})
+            }
+            beforeAll(async () => {
+                const oneTimeToken = await createOneTimeToken();
+                response = await activateRequest(oneTimeToken.activation.token);
             })
 
             afterAll(async () => {
-                await deleteOneTimeToken(createdOneTimeToken.token);
+                await deleteOneTimeToken({ creator: user._id });
+                await setisActivatedToValueForUser(true)
             })
-
-            const deleteOneTimeToken = async (token) => {
-                await OneTimeToken.deleteOne({ token: token })
-            }
 
             it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
@@ -77,10 +118,9 @@ describe('/activate/:token GET', () => {
                 messageShouldBe(response, 'The user has been activated successfully.')
             })
 
-            it('the token should be different from the previous one', async () => {
-                const findedOneTimeToken = await OneTimeToken.findOne({ creator: createdOneTimeToken.creator })
-                const oldToken = createdOneTimeToken.token;
-                expect(findedOneTimeToken.token).not.toBe(oldToken)
+            it('the isActivated of user should be true', async () => {
+                const findedUser = await User.findOne({ ...validUser });
+                expect(findedUser.isActivated).toBe(true)
             })
         })
         describe('when the token is expired', () => {
@@ -88,19 +128,20 @@ describe('/activate/:token GET', () => {
             let createdOneTimeToken;
             beforeAll(async () => {
                 const oneTimeToken = await createOneTimeToken({
-                    endOfValidity: 1
+                    activation: {
+                        token: 'dasud92ddsay9dsa12IYDsuadia',
+                        endOfValidity: 1
+                    }
                 });
                 createdOneTimeToken = oneTimeToken;
-                response = await activateRequest(oneTimeToken.token);
+                response = await activateRequest(oneTimeToken.activation.token);
             })
 
             afterAll(async () => {
-                await deleteOneTimeToken(createdOneTimeToken.token);
+                await deleteOneTimeToken({ 'creator': createdOneTimeToken.creator });
             })
 
-            const deleteOneTimeToken = async (token) => {
-                await OneTimeToken.deleteOne({ token: token })
-            }
+
 
             it('type of response should contain json', () => {
                 responseTypeShouldContainJson(response);
@@ -116,8 +157,8 @@ describe('/activate/:token GET', () => {
 
             it('the token should be different from the previous one', async () => {
                 const findedOneTimeToken = await OneTimeToken.findOne({ creator: createdOneTimeToken.creator })
-                const oldToken = createdOneTimeToken.token;
-                expect(findedOneTimeToken.token).not.toBe(oldToken)
+                const oldToken = createdOneTimeToken.activation.token;
+                expect(findedOneTimeToken.activation.token).not.toBe(oldToken)
             })
         })
     })

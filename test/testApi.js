@@ -86,18 +86,27 @@ const getToken = async (app) => {
     return token;
 }
 
-let isUserCreated = false;
-const tryCreateValidUser = async () => {
-    if (!isUserCreated) {
-        try {
-            const user = new User({ ...validUser, isActivated: true });
-            await user.save();
-        } catch {
-            // User already exists.
-        } finally {
-            isUserCreated = true;
-        }
+const findOrCreateValidUser = async () => {
+    const findedUser = await findUser(validUser);
+    if (findedUser) {
+        return findedUser;
     }
+    const createdUser = await createUser({ ...validUser, isActivated: true});
+    return createdUser;
+}
+
+const updateUser = async (filterData, newUser) => {
+    await User.updateOne(filterData, newUser);
+}
+
+const findUser = async (filterData) => {
+    const findedUser = await User.findOne(filterData);
+    return findedUser;
+}
+
+const createUser = async () => {
+    const user = new User({ ...validUser, isActivated: true });
+    await user.save();
 }
 
 module.exports = {
@@ -110,5 +119,5 @@ module.exports = {
     messageShouldBe,
     makeHttpRequest,
     getToken,
-    tryCreateValidUser,
+    findOrCreateValidUser,
 }

@@ -1,8 +1,9 @@
 const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, messageShouldBe, makeHttpRequest, tryCreateValidUser, validUser } = require('./testApi');
+const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, messageShouldBe, makeHttpRequest, findOrCreateValidUser, validUser } = require('./testApi');
 beforeAll(async () => {
-    await tryCreateValidUser();
+    const user = await findOrCreateValidUser();
+    console.log(user);
 })
 afterAll(done => {
     mongoose.connection.close()

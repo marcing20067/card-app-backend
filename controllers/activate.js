@@ -5,14 +5,14 @@ const messages = require('../messages/messages');
 exports.activate = async (req, res) => {
     const token = req.params.oneTimeToken;
     try {
-        const findedOneTimeToken = await OneTimeToken.findOne(token);
+        const findedOneTimeToken = await OneTimeToken.findOne({ 'activation.token': token });
         if (!findedOneTimeToken) {
             throw new Error(messages.oneTimeToken.invalidData);
         }
 
-        const oneTimeTokenHasExpired = findedOneTimeToken.hasExpired(findedOneTimeToken);
+        const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation', findedOneTimeToken);
         if (oneTimeTokenHasExpired) {
-            const newOneTimeToken = await OneTimeToken.updateOne(token, findedOneTimeToken.creator);
+            const newOneTimeToken = await OneTimeToken.updateOne({ 'activation.token': findedOneTimeToken.activation.token }, findedOneTimeToken.creator);
             sendEmailWithMessage(newOneTimeToken)
             res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated })
             return;
@@ -29,10 +29,7 @@ exports.activate = async (req, res) => {
 }
 
 const sendEmailWithMessage = (oneTimeToken) => {
-    console.log(oneTimeToken);
-    const url = oneTimeToken.createUrl();
-    console.log(url);
-    // TODO: Send email
+    const url = oneTimeToken.createUrl('activation');
 }
 
 const changeIsActivatedToTrueForUser = async (userId) => {

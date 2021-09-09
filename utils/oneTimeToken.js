@@ -3,9 +3,21 @@ const OneTimeTokenModel = require('../models/oneTimeToken');
 const config = require('../config/config');
 
 module.exports = class OneTimeToken {
-    constructor(creator, token, endOfValidity) {
+
+    constructor(creator, resetPassword, resetNickname, activation, endOfValidity) {
         this.creator = creator;
-        this.token = token || this.generateToken();
+        this.resetPassword = resetPassword || {
+            token: this.generateToken(),
+            endOfValidity: this.generateEndOfValidity(),
+        };
+        this.resetNickname = resetNickname || {
+            token: this.generateToken(),
+            endOfValidity: this.generateEndOfValidity(),
+        };
+        this.activation = activation || {
+            token: this.generateToken(),
+            endOfValidity: this.generateEndOfValidity(),
+        };
         this.endOfValidity = endOfValidity || this.generateEndOfValidity();
     }
 
@@ -22,14 +34,15 @@ module.exports = class OneTimeToken {
         return endOfValidity;
     }
 
-    createUrl() {
+    createUrl(tokenType) {
         const frontendUrl = config.FRONTEND_URL;
-        return `${frontendUrl}/${this.token}`;
+        const token = this[tokenType].token;
+        return `${frontendUrl}/${token}`;
     }
 
-    hasExpired(oneTimeToken) {
+    hasTokenExpired(tokenType, oneTimeToken) {
         const now = Date.now();
-        return now > oneTimeToken.endOfValidity;
+        return now > oneTimeToken[tokenType].endOfValidity;
     }
 
     async save() {
@@ -37,17 +50,24 @@ module.exports = class OneTimeToken {
         await oneTimeToken.save()
     }
 
-    static async findOne(token) {
-        const findedOneTimeToken = await OneTimeTokenModel.findOne({ token: token });
+    static async findOne(filterData) {
+        const findedOneTimeToken = await OneTimeTokenModel.findOne(filterData);
         if (findedOneTimeToken) {
-            const oneTimeToken = new OneTimeToken(findedOneTimeToken.creator, findedOneTimeToken.token, findedOneTimeToken.endOfValidity);
+            const oneTimeToken = new OneTimeToken(
+                findedOneTimeToken.creator,
+                findedOneTimeToken.resetPassword,
+                findedOneTimeToken.resetNickname,
+                findedOneTimeToken.activation,
+                findedOneTimeToken.endOfValidity
+            );
+
             return oneTimeToken;
         }
     }
 
-    static async updateOne(oldToken, creator) {
+    static async updateOne(filterData, creator) {
         const newOneTimeToken = new OneTimeToken(creator);
-        await OneTimeTokenModel.updateOne({ token: oldToken }, newOneTimeToken);
+        await OneTimeTokenModel.updateOne(filterData, newOneTimeToken);
         return newOneTimeToken;
     }
 }

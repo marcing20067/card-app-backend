@@ -1,4 +1,4 @@
-const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, tryCreateValidUser } = require('./testApi');
+const { validSet, validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, findOrCreateValidUser } = require('./testApi');
 const app = require('../app');
 const mongoose = require('mongoose');
 const Set = require('../models/set');
@@ -10,7 +10,7 @@ afterAll(done => {
 })
 
 beforeAll(async () => {
-    await tryCreateValidUser();
+    await findOrCreateValidUser();
 })
 
 describe('/sets GET', () => {
