@@ -1,24 +1,10 @@
 const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, validUser, messageShouldBe, createOneTimeToken } = require('./testApi');
+const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, getRandomUserData, messageShouldBe, createOneTimeToken } = require('./testApi');
 const OneTimeToken = require('../models/oneTimeToken');
 const User = require('../models/user');
 
-const getRandomUserData = () => {
-    const letters = 'qwertyuiopasdfghjklzxcvbnm';
-    const usernameLength = 8;
-    let username = '';
-    for (let i = 0; i < usernameLength; i++) {
-        const randomIndex = Math.floor(Math.random() * letters.length);
-        username = username + letters[randomIndex];
-    }
-    return {
-        ...validUser,
-        username: username,
-        email: 'changePassword@example.com',
-        isActivated: true
-    }
-}
+
 
 afterAll(done => {
     mongoose.connection.close()

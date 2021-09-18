@@ -136,6 +136,22 @@ const generateEndOfValidity = () => {
     return endOfValidity;
 }
 
+const getRandomUserData = () => {
+    const letters = 'qwertyuiopasdfghjklzxcvbnm';
+    const usernameLength = 8;
+    let username = '';
+    for (let i = 0; i < usernameLength; i++) {
+        const randomIndex = Math.floor(Math.random() * letters.length);
+        username = username + letters[randomIndex];
+    }
+    return {
+        ...validUser,
+        username: username,
+        email: 'changePassword@example.com',
+        isActivated: true
+    }
+}
+
 module.exports = {
     newUser,
     validUser,
@@ -147,5 +163,6 @@ module.exports = {
     makeHttpRequest,
     getToken,
     findOrCreateValidUser,
-    createOneTimeToken
+    createOneTimeToken,
+    getRandomUserData
 }
