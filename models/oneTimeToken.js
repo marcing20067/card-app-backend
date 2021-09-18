@@ -24,6 +24,6 @@ const OneTimeTokenSchema = new Schema({
         required: true
     },
     creator: { type: String, required: true, unique: true}
-})
+}, { versionKey: false })
 
 module.exports = mongoose.model('OneTimeToken', OneTimeTokenSchema);

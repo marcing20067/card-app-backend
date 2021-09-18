@@ -1,13 +1,18 @@
 ###
-POST http://localhost:3000/signup
+GET http://localhost:3000/signup
 Content-Type: application/json
 
 {
-    "email": "siema@koxuwa.com",
-    "username": "siema1",
+    "email": "tedascik@koxuwa.com",
+    "username": "daddsas",
     "password": "siema1234"
 }
 ###
 GET http://localhost:3000/refresh
 ###
-GET http://localhost:3000/activate/1fdasda12
+POST http://localhost:3000/resetPassword
+Content-Type: application/json
+
+{
+    "username": "daddsas"
+}

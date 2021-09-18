@@ -1,6 +1,6 @@
 const httpRequest = require('supertest');
 const User = require('../models/user');
-
+const OneTimeToken = require('../models/oneTimeToken');
 const validUser = {
     username: 'admin',
     password: 'password',
@@ -91,12 +91,8 @@ const findOrCreateValidUser = async () => {
     if (findedUser) {
         return findedUser;
     }
-    const createdUser = await createUser({ ...validUser, isActivated: true});
+    const createdUser = await createUser({ ...validUser, isActivated: true });
     return createdUser;
-}
-
-const updateUser = async (filterData, newUser) => {
-    await User.updateOne(filterData, newUser);
 }
 
 const findUser = async (filterData) => {
@@ -107,6 +103,37 @@ const findUser = async (filterData) => {
 const createUser = async () => {
     const user = new User({ ...validUser, isActivated: true });
     await user.save();
+}
+
+const createOneTimeToken = async (customTokenData) => {
+    const randomToken = 'dasud92ddsay9dsa12IYDsuadi' + Math.floor(Math.random() * 500);
+    const oneTimeTokenData = {
+        resetPassword: {
+            token: randomToken,
+            endOfValidity: generateEndOfValidity()
+        },
+        resetNickname: {
+            token: randomToken,
+            endOfValidity: generateEndOfValidity()
+        },
+        activation: {
+            token: randomToken,
+            endOfValidity: generateEndOfValidity()
+        },
+        creator: '',
+        ...customTokenData
+    }
+
+    const newOneTimeToken = new OneTimeToken({ ...oneTimeTokenData });
+    const createdOneTimeToken = await newOneTimeToken.save();
+    return createdOneTimeToken;
+}
+
+const generateEndOfValidity = () => {
+    const oneTimeTokenExpiresInWeeks = 1;
+    const now = new Date();
+    const endOfValidity = new Date().setDate(now.getDate() + oneTimeTokenExpiresInWeeks * 7);
+    return endOfValidity;
 }
 
 module.exports = {
@@ -120,4 +147,5 @@ module.exports = {
     makeHttpRequest,
     getToken,
     findOrCreateValidUser,
+    createOneTimeToken
 }

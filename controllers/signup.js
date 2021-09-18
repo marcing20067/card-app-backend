@@ -42,6 +42,7 @@ const createOneTimeToken = async (creator) => {
     const oneTimeToken = new OneTimeToken(creator);
     await oneTimeToken.save();
     const url = oneTimeToken.createUrl('activation');
+    console.log(url);
     return oneTimeToken;
 }
 
