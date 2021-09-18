@@ -23,11 +23,11 @@ const deleteUser = async (userData) => {
     await User.deleteOne(userData);
 }
 
-describe('/resetPassword POST', () => {
-    const resetPasswordRequest = (username, extraOptions) => {
+describe('/resetUsername POST', () => {
+    const resetUsernameRequest = (username, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'POST',
-            endpoint: `/resetPassword`,
+            endpoint: `/resetUsername`,
             data: {
                 username: username
             },
@@ -52,7 +52,7 @@ describe('/resetPassword POST', () => {
 
         let response;
         beforeAll(async () => {
-            response = await resetPasswordRequest(user.username);
+            response = await resetUsernameRequest(user.username);
         })
 
         const getOneTimeToken = async (filter) => {
@@ -98,7 +98,7 @@ describe('/resetPassword POST', () => {
             let response;
             beforeAll(async () => {
                 const wrongUsername = '';
-                response = await resetPasswordRequest(wrongUsername);
+                response = await resetUsernameRequest(wrongUsername);
             })
 
             it('type of response should contain json', () => {
@@ -116,11 +116,11 @@ describe('/resetPassword POST', () => {
     })
 })
 
-describe('/resetPassword/:oneTimeToken POST', () => {
-    const resetPasswordWithTokenRequest = (resetPasswordToken, extraOptions) => {
+describe('/resetUsername/:oneTimeToken POST', () => {
+    const resetUsernameWithTokenRequest = (resetUsernameToken, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'POST',
-            endpoint: `/resetPassword/${resetPasswordToken}`,
+            endpoint: `/resetUsername/${resetUsernameToken}`,
             data: {},
             ...extraOptions
         });
@@ -135,10 +135,10 @@ describe('/resetPassword/:oneTimeToken POST', () => {
             oneTimeToken = await createOneTimeToken({
                 creator: user._id
             });
-            response = await resetPasswordWithTokenRequest(oneTimeToken.resetPassword.token, {
+            response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                 data: {
-                    oldPassword: user.password,
-                    newPassword: 'extraNewPassword123!'
+                    oldUsername: user.username,
+                    newUsername: 'extraNewUsername123!'
                 }
             });
         })
@@ -157,12 +157,12 @@ describe('/resetPassword/:oneTimeToken POST', () => {
         })
 
         it('message should be correct', () => {
-            messageShouldBe(response, 'Password has been changed successfully.')
+            messageShouldBe(response, 'Username has been changed successfully.')
         })
 
-        it('user password should be changed', async () => {
+        it('user username should be changed', async () => {
             const findedUser = await User.findOne({ _id: user._id });
-            expect(findedUser.password).toBe('extraNewPassword123!');
+            expect(findedUser.username).toBe('extraNewUsername123!');
         })
     })
 
@@ -181,13 +181,13 @@ describe('/resetPassword/:oneTimeToken POST', () => {
             await deleteUser({ _id: user._id })
             await deleteOneTimeToken({ creator: user._id })
         })
-        describe('when the password is the same as the previous one', () => {
+        describe('when the username is the same as the previous one', () => {
             let response;
             beforeAll(async () => {
-                response = await resetPasswordWithTokenRequest(oneTimeToken.resetPassword.token, {
+                response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                     data: {
-                        oldPassword: user.password,
-                        newPassword: user.password
+                        oldUsername: user.username,
+                        newUsername: user.username
                     }
                 });
             })
@@ -201,15 +201,15 @@ describe('/resetPassword/:oneTimeToken POST', () => {
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'The password is the same as the previous one.')
+                messageShouldBe(response, 'The username is the same as the previous one.')
             })
         })
 
-        describe('when resetPasswordToken is wrong', () => {
+        describe('when resetUsernameToken is wrong', () => {
             let response;
             beforeAll(async () => {
                 const wrongToken = 'wrongToken';
-                response = await resetPasswordWithTokenRequest(wrongToken);
+                response = await resetUsernameWithTokenRequest(wrongToken);
             })
 
             it('type of response should contain json', () => {

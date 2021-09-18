@@ -112,7 +112,7 @@ const createOneTimeToken = async (customTokenData) => {
             token: randomToken,
             endOfValidity: generateEndOfValidity()
         },
-        resetNickname: {
+        resetUsername: {
             token: randomToken,
             endOfValidity: generateEndOfValidity()
         },

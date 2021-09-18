@@ -4,13 +4,13 @@ const config = require('../config/config');
 
 module.exports = class OneTimeToken {
 
-    constructor(creator, resetPassword, resetNickname, activation) {
+    constructor(creator, resetPassword, resetUsername, activation) {
         this.creator = creator;
         this.resetPassword = resetPassword || {
             token: this.generateToken(),
             endOfValidity: this.generateEndOfValidity(),
         };
-        this.resetNickname = resetNickname || {
+        this.resetUsername = resetUsername || {
             token: this.generateToken(),
             endOfValidity: this.generateEndOfValidity(),
         };
@@ -55,7 +55,7 @@ module.exports = class OneTimeToken {
             const oneTimeToken = new OneTimeToken(
                 findedOneTimeToken.creator,
                 findedOneTimeToken.resetPassword,
-                findedOneTimeToken.resetNickname,
+                findedOneTimeToken.resetUsername,
                 findedOneTimeToken.activation,
             );
             

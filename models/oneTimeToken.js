@@ -9,7 +9,7 @@ const OneTimeTokenSchema = new Schema({
         },
         required: true
     },
-    resetNickname: { 
+    resetUsername: { 
         type: {
             token: { type: String, unique: true, required: true},
             endOfValidity: { type: Number, required: true},
