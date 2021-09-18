@@ -22,6 +22,7 @@ exports.login = async (req, res, next) => {
             id: findedUser._id,
             isActivated: findedUser
         }
+
         const tokenData = token.createTokenData(userDataForToken);
 
         token.setRefreshTokenInCookie(res, tokenData);

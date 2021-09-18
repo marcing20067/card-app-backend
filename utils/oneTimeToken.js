@@ -39,9 +39,9 @@ module.exports = class OneTimeToken {
         return `${frontendUrl}/${token}`;
     }
 
-    hasTokenExpired(tokenType, oneTimeToken) {
+    hasTokenExpired(tokenType) {
         const now = Date.now();
-        return now > oneTimeToken[tokenType].endOfValidity;
+        return now > this[tokenType].endOfValidity;
     }
 
     async save() {

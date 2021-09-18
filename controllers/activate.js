@@ -3,22 +3,19 @@ const User = require('../models/user');
 const messages = require('../messages/messages');
 
 exports.activate = async (req, res) => {
-    const token = req.params.oneTimeToken;
+    const activationToken = req.params.activationToken;
     try {
-        const findedOneTimeToken = await OneTimeToken.findOne({ 'activation.token': token });
-        if (!findedOneTimeToken) {
-            throw new Error(messages.oneTimeToken.invalidData);
-        }
+        const findedOneTimeToken = await findOneTimeToken({ 'activation.token': activationToken });
 
-        const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation', findedOneTimeToken);
+        const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation');
         if (oneTimeTokenHasExpired) {
-            const newOneTimeToken = await OneTimeToken.updateOne({ 'activation.token': findedOneTimeToken.activation.token }, findedOneTimeToken.creator);
+            // TODO: come up with a better name than "updateOne"
+            const newOneTimeToken = await OneTimeToken.updateOne({ 'activation.token': activationToken }, findedOneTimeToken.creator);
             sendEmailWithMessage(newOneTimeToken)
             res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated })
             return;
         }
-
-        if (findedOneTimeToken && !oneTimeTokenHasExpired) {
+        if (!oneTimeTokenHasExpired) {
             const userId = findedOneTimeToken.creator;
             await changeIsActivatedToTrueForUser(userId);
             res.send({ message: messages.oneTimeToken.tokenHasBeenUsedSuccessfully });
@@ -28,8 +25,17 @@ exports.activate = async (req, res) => {
     }
 }
 
+const findOneTimeToken = async (filter) => {
+    const findedOneTimeToken = await OneTimeToken.findOne(filter);
+    if (!findedOneTimeToken) {
+        throw new Error(messages.oneTimeToken.invalidData);
+    }
+    return findedOneTimeToken;
+}
+
 const sendEmailWithMessage = (oneTimeToken) => {
     const url = oneTimeToken.createUrl('activation');
+    // TODO: Send email
 }
 
 const changeIsActivatedToTrueForUser = async (userId) => {
