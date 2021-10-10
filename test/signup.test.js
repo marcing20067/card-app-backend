@@ -22,44 +22,12 @@ describe('/signup POST', () => {
     }
 
     beforeAll(async () => {
-        await ifOneTimeTokenExistsDeleteIt();
-        await ifUserExistsDeleteIt();
+        const findedUser = await User.findOne({ username: newUser.username })
+        if(findedUser) {
+            await User.deleteOne({ username: newUser.username });
+            await OneTimeToken.deleteOne({ creator: findedUser._id });
+        }
     })
-
-    const ifOneTimeTokenExistsDeleteIt = async () => {
-        const user = await findUser({ username: newUser.username });
-        const oneTimeToken = await findOneTimeToken({ creator: user._id });
-        if (oneTimeToken) {
-            const userId = user._id;
-            await deleteOneTimeToken(userId);
-        }
-    }
-
-    const deleteOneTimeToken = async (creator) => {
-        await OneTimeToken.deleteOne({ creator: creator });
-    }
-
-    const ifUserExistsDeleteIt = async () => {
-        const user = await findUser({ username: newUser.username });
-        if (user) {
-            const userId = user._id;
-            await deleteUser(userId);
-        }
-    }
-
-    const findOneTimeToken = async (filterData) => {
-        const oneTimeToken = await OneTimeToken.findOne(filterData);
-        return oneTimeToken;
-    }
-
-    const findUser = async (userData) => {
-        const findedUser = await User.findOne(userData);
-        return findedUser;
-    }
-
-    const deleteUser = async (userId) => {
-        await User.deleteOne({ _id: userId });
-    }
 
     describe('when request is correct', () => {
         let response;
@@ -80,18 +48,16 @@ describe('/signup POST', () => {
         })
 
         it('created user should exists in db', async () => {
-            const findedUser = await findUser(newUser);
+            const findedUser = await User.findOne(newUser);
             expect(findedUser).not.toBe(null);
         })
 
         it('oneTimeToken should exists in db', async () => {
-            const user = await findUser(newUser);
+            const user = await User.findOne(newUser);
             const userId = user._id;
-            const findedOneTimeToken = await findOneTimeToken({ creator: userId });
+            const findedOneTimeToken = await OneTimeToken.findOne({ creator: userId });
             expect(findedOneTimeToken).not.toBe(null);
         })
-
-
     })
 
     describe('when request is invalid', () => {
@@ -256,12 +222,12 @@ describe('/signup POST', () => {
         describe('when username is already taken', () => {
             let response;
             beforeAll(async () => {
-                if (!(await isUserExists())) {
-                    await createUser({ ...newUser, isActivated: true })
+                if (!(await isUserExists({ ...newUser, username: 'taken', isActivated: true }))) {
+                    await createUser({ ...newUser, username: 'taken', isActivated: true })
                 }
             })
             beforeAll(async () => {
-                response = await signupRequest(newUser);
+                response = await signupRequest({ ...newUser, username: 'taken'});
             })
 
             const isUserExists = async (userData) => {

@@ -1,7 +1,6 @@
 const User = require('../models/user');
-const isShortErrorAndSendError = require('../util/short');
+const MongoError = require('../util/mongoError');
 const messages = require('../messages/messages');
-const isAnyPropertyUndefinedAndSendError = require('../util/required');
 const OneTimeToken = require('../util/oneTimeToken');
 
 exports.signup = async (req, res, next) => {
@@ -11,39 +10,27 @@ exports.signup = async (req, res, next) => {
         password: req.body.password,
         email: req.body.email,
     };
-    if(isAnyPropertyUndefinedAndSendError(res, userData)){
-        return;
-    }
+
     try {
         const createdUser = await createUser(userData);
         const createdOneTimeToken = await createOneTimeToken(createdUser._id);
+        const url = createdOneTimeToken.createUrl('activation');
+        console.log(url);
         res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
-    } catch (err) {
-        if (isUsernameTakenErrorAndSendError(res, err)) {
-            return;
+    } catch (error) {
+        const mongoError = new MongoError(error)
+        const message = mongoError.getMessage(error);
+        if (message && message.includes('taken')) {
+            return res.status(409).send({ message: message })
         }
-        if (err.errors.username) {
-            const message = err.errors.username.properties.message;
-            if (isShortErrorAndSendError(res, message)) {
-                return;
-            }
-        }
-        if (err.errors.password) {
-            const message = err.errors.password.properties.message;
-            if (isShortErrorAndSendError(res, message)) {
-                return;
-            }
-        }
-        res.status(400).send({ message: messages.global.invalidData })
+        res.status(400).send({ message: message || messages.global.invalidData })
     }
 }
 
 const createOneTimeToken = async (creator) => {
-    const oneTimeToken = new OneTimeToken(creator);
-    await oneTimeToken.save();
-    const url = oneTimeToken.createUrl('activation');
-    console.log(url);
-    return oneTimeToken;
+    const newOneTimeToken = new OneTimeToken(creator);
+    const createdOneTimeToken = await newOneTimeToken.save();
+    return newOneTimeToken;
 }
 
 const createUser = async (user) => {
@@ -51,12 +38,3 @@ const createUser = async (user) => {
     const createdUser = await newUser.save();
     return createdUser;
 }
-
-const isUsernameTakenErrorAndSendError = (res, err) => {
-    if (err.name === 'MongoError' && err.code === 11000) {
-        res.status(409).send({ message: messages.user.usernameTaken })
-        return true;
-    }
-    return false;
-}
-

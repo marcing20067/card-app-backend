@@ -1,5 +1,4 @@
 const User = require('../models/user');
-const MongoError = require('../util/mongoError');
 const messages = require('../messages/messages');
 const JwtToken = require('../util/token');
 
@@ -17,12 +16,12 @@ exports.login = async (req, res, next) => {
             throw new Error;
         }
 
-        const userDataForToken = {
+        const userDataPayload = {
             id: findedUser._id,
             isActivated: findedUser
         }
-        const tokenData = new JwtToken(userDataForToken);
-        tokenData.setRefreshTokenInCookie(res);
+        const tokenData = new JwtToken(userDataPayload);
+        tokenData.setRefreshTokenCookies(res);
         const accessTokenData = tokenData.getAccessTokenData();
 
         res.send(accessTokenData);

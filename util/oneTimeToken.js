@@ -3,7 +3,6 @@ const OneTimeTokenModel = require('../models/oneTimeToken');
 const config = require('../config/config');
 
 module.exports = class OneTimeToken {
-
     constructor(creator, resetPassword, resetUsername, activation) {
         this.creator = creator;
         this.resetPassword = resetPassword || {

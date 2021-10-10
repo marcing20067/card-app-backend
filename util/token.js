@@ -14,20 +14,11 @@ module.exports = class JwtToken {
         this.refreshToken = refreshToken;
     }
 
-    setRefreshTokenInCookie(res, refreshToken) {
+    setRefreshTokenCookies(res, refreshToken) {
         res.cookie('refreshToken', refreshToken || this.refreshToken, {
             maxAge: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS,
             httpOnly: true
         })
-    }
-
-    static setRefreshTokenInCookie(res, refreshToken) {
-        this.setRefreshTokenInCookie(res, refreshToken)
-    }
-
-    static verifyRefreshToken(refreshToken) {
-        const decoded = jwt.verify(refreshToken, config.REFRESH_TOKEN);
-        return decoded;
     }
 
     getAccessTokenData() {
@@ -37,4 +28,12 @@ module.exports = class JwtToken {
         }
     }
 
+    static setRefreshTokenCookies(res, refreshToken) {
+        this.setRefreshTokenInCookie(res, refreshToken)
+    }
+
+    static verifyRefreshToken(refreshToken) {
+        const decoded = jwt.verify(refreshToken, config.REFRESH_TOKEN);
+        return decoded;
+    }
 }

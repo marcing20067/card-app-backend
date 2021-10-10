@@ -24,6 +24,7 @@ const User = new Schema({
                 return messages.global.invalidData
             }
         },
+        required: true,
         minLength: 4
     },
     password: { type: String, required: true, minLength: 8 }
