@@ -1,16 +1,10 @@
-const isAnyPropertyUndefinedAndSendError = (res, object) => {
+const isAnyPropertyUndefined = (object) => {
     for (const property in object) {
         if (object[property] === undefined) {
-            const formattedPropertyName = property[0].toUpperCase() + property.slice(1);
-            res.status(400).send({ message: createMessage(formattedPropertyName) });
-            return true;
+            return `${propertyName} is required.`;
         }
     }
     return false;
 }
 
-const createMessage = (propertyName) => {
-    return `${propertyName} is required.`;
-}
-
-module.exports = isAnyPropertyUndefinedAndSendError;
+module.exports = isAnyPropertyUndefined;

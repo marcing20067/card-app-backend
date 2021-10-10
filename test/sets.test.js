@@ -499,23 +499,7 @@ describe('/sets/:setId POST', () => {
                 messageShouldBe(response, 'Name is required.')
             })
         })
-        describe('when only cards is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                response = await createSetRequest({ ...validSet, cards: undefined });
-            })
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Cards is required.')
-            })
-        })
+        
         describe('when only stats is undefined', () => {
             let response;
             beforeAll(async () => {

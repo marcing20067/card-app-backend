@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const isAnyPropertyUndefinedAndSendError = require('../util/required');
+const MongoError = require('../util/mongoError');
 const messages = require('../messages/messages');
 const JwtToken = require('../util/token');
 
@@ -11,12 +11,11 @@ exports.login = async (req, res, next) => {
         isActivated: true
     }
 
-    if (isAnyPropertyUndefinedAndSendError(res, userData)) {
-        return;
-    }
-
     try {
-        const findedUser = await findUser(userData);
+        const findedUser = await User.findOne(userData);
+        if (!findedUser) {
+            throw new Error;
+        }
 
         const userDataForToken = {
             id: findedUser._id,
@@ -32,10 +31,3 @@ exports.login = async (req, res, next) => {
     }
 }
 
-const findUser = async (userData) => {
-    const findedUser = await User.findOne(userData)
-    if (!findedUser) {
-        throw new Error;
-    }
-    return findedUser;
-}

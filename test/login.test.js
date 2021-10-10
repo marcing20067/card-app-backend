@@ -64,7 +64,7 @@ describe('/login POST', () => {
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Username is required.')
+                messageShouldBe(response, 'User does not exist.')
             })
         })
 
@@ -87,7 +87,7 @@ describe('/login POST', () => {
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Password is required.')
+                messageShouldBe(response, 'User does not exist.')
             })
         })
 
