@@ -1,4 +1,4 @@
-const OneTimeToken = require('../utils/oneTimeToken');
+const OneTimeToken = require('../util/oneTimeToken');
 const User = require('../models/user');
 const messages = require('../messages/messages');
 

@@ -1,8 +1,8 @@
 const User = require('../models/user');
-const isShortErrorAndSendError = require('../utils/short');
+const isShortErrorAndSendError = require('../util/short');
 const messages = require('../messages/messages');
-const isAnyPropertyUndefinedAndSendError = require('../utils/required');
-const OneTimeToken = require('../utils/oneTimeToken');
+const isAnyPropertyUndefinedAndSendError = require('../util/required');
+const OneTimeToken = require('../util/oneTimeToken');
 
 exports.signup = async (req, res, next) => {
     const userData = {

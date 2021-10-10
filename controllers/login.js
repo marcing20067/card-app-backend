@@ -1,7 +1,7 @@
 const User = require('../models/user');
-const isAnyPropertyUndefinedAndSendError = require('../utils/required');
+const isAnyPropertyUndefinedAndSendError = require('../util/required');
 const messages = require('../messages/messages');
-const token = require('../utils/token');
+const JwtToken = require('../util/token');
 
 exports.login = async (req, res, next) => {
     const userData = {
@@ -22,15 +22,9 @@ exports.login = async (req, res, next) => {
             id: findedUser._id,
             isActivated: findedUser
         }
-
-        const tokenData = token.createTokenData(userDataForToken);
-
-        token.setRefreshTokenInCookie(res, tokenData);
-
-        const accessTokenData = {
-            accessToken: tokenData.accessToken,
-            accessTokenExpiresIn: tokenData.accessTokenExpiresIn,
-        }
+        const tokenData = new JwtToken(userDataForToken);
+        tokenData.setRefreshTokenInCookie(res);
+        const accessTokenData = tokenData.getAccessTokenData();
 
         res.send(accessTokenData);
     } catch {

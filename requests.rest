@@ -1,5 +1,5 @@
 ###
-GET http://localhost:3000/signup
+POST http://localhost:3000/login
 Content-Type: application/json
 
 {
@@ -8,7 +8,7 @@ Content-Type: application/json
     "password": "siema1234"
 }
 ###
-GET http://localhost:3000/refresh
+GET http://localhost:3000/activate/ad728699705dab
 ###
 POST http://localhost:3000/resetPassword
 Content-Type: application/json
@@ -16,3 +16,6 @@ Content-Type: application/json
 {
     "username": "daddsas"
 }
+###
+GET http://localhost:3000/refresh
+

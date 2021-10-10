@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const OneTimeToken = require('../utils/oneTimeToken');
+const OneTimeToken = require('../util/oneTimeToken');
 const messages = require('../messages/messages');
 
 exports.resetPassword = async (req, res, next) => {
