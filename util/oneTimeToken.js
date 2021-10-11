@@ -1,5 +1,5 @@
 const crypto = require('crypto');
-const OneTimeTokenModel = require('../models/oneTimeToken');
+const OneTimeTokenDb = require('../models/oneTimeToken');
 const config = require('../config/config');
 
 module.exports = class OneTimeToken {
@@ -44,12 +44,12 @@ module.exports = class OneTimeToken {
     }
 
     async save() {
-        const oneTimeToken = new OneTimeTokenModel(this);
+        const oneTimeToken = new OneTimeTokenDb(this);
         await oneTimeToken.save()
     }
 
     static async findOne(filterData) {
-        const findedOneTimeToken = await OneTimeTokenModel.findOne(filterData);
+        const findedOneTimeToken = await OneTimeTokenDb.findOne(filterData);
         if (findedOneTimeToken) {
             const oneTimeToken = new OneTimeToken(
                 findedOneTimeToken.creator,
@@ -64,7 +64,7 @@ module.exports = class OneTimeToken {
 
     static async updateOne(filterData, creator) {
         const newOneTimeToken = new OneTimeToken(creator);
-        await OneTimeTokenModel.updateOne(filterData, newOneTimeToken);
+        await OneTimeTokenDb.updateOne(filterData, newOneTimeToken);
         return newOneTimeToken;
     }
 }

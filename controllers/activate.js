@@ -9,7 +9,6 @@ exports.activate = async (req, res) => {
 
         const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation');
         if (oneTimeTokenHasExpired) {
-            // TODO: come up with a better name than "updateOne"
             const newOneTimeToken = await OneTimeToken.updateOne({ 'activation.token': activationToken }, findedOneTimeToken.creator);
             sendEmailWithMessage(newOneTimeToken)
             res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated })
