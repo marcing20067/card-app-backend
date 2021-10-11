@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const OneTimeToken = require('../util/oneTimeToken');
+const OneTimeToken = require('../models/oneTimeToken');
 const messages = require('../messages/messages');
 
 exports.resetPassword = async (req, res, next) => {
@@ -9,7 +9,7 @@ exports.resetPassword = async (req, res, next) => {
         if (!findedUser) {
             throw new Error(messages.user.invalidData);
         }
-        const newOneTimeToken = await OneTimeToken.updateOne({ creator: findedUser._id }, findedUser._id);
+        const newOneTimeToken = await new OneTimeToken({ creator: findedUser._id });
         sendEmailWithLink(newOneTimeToken);
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
     }
@@ -40,7 +40,6 @@ exports.resetPasswordWithToken = async (req, res, next) => {
     } catch (error) {
         res.status(400).send({ message: error.message });
     }
-
 }
 
 const updatePasswordForUser = async (filter, newPassword) => {

@@ -1,5 +1,5 @@
 const User = require('../models/user');
-const OneTimeToken = require('../util/oneTimeToken');
+const OneTimeToken = require('../models/oneTimeToken');
 const messages = require('../messages/messages');
 
 exports.resetUsername = async (req, res, next) => {
@@ -9,7 +9,7 @@ exports.resetUsername = async (req, res, next) => {
         if (!findedUser) {
             throw new Error(messages.user.invalidData);
         }
-        const newOneTimeToken = await OneTimeToken.updateOne({ creator: findedUser._id }, findedUser._id);
+        const newOneTimeToken = await new OneTimeToken({ creator: findedUser._id });
         sendEmailWithLink(newOneTimeToken);
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
     }
@@ -36,7 +36,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
             throw new Error(messages.global.invalidData);
         }
         await updatePasswordForUser({ _id: findedOneTimeToken.creator }, newUsername);
-        res.send({ message: 'Username has been changed successfully.'})
+        res.send({ message: 'Username has been changed successfully.' })
     } catch (error) {
         res.status(400).send({ message: error.message });
     }
@@ -45,7 +45,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
 
 const updatePasswordForUser = async (filter, newUsername) => {
     const responseData = await User.updateOne(filter, { $set: { username: newUsername } });
-    if(responseData.nModified === 0) {
+    if (responseData.nModified === 0) {
         throw new Error('The username is the same as the previous one.')
     }
 }

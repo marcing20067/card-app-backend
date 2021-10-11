@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const MongoError = require('../util/mongoError');
 const messages = require('../messages/messages');
-const OneTimeToken = require('../util/oneTimeToken');
+const OneTimeToken = require('../models/oneTimeToken');
 
 exports.signup = async (req, res, next) => {
     const userData = {
@@ -28,7 +28,7 @@ exports.signup = async (req, res, next) => {
 }
 
 const createOneTimeToken = async (creator) => {
-    const newOneTimeToken = new OneTimeToken(creator);
+    const newOneTimeToken = new OneTimeToken({ creator: creator });
     const createdOneTimeToken = await newOneTimeToken.save();
     return newOneTimeToken;
 }
