@@ -47,26 +47,6 @@ describe.skip('/refresh GET', () => {
     })
 
     describe('when request is invalid', () => {
-        describe('when access token is invalid', () => {
-            beforeAll(async () => {
-                response = await refreshRequest({
-                    isIncludeToken: false,
-                    customCookie: 'refreshToken=d9oiu21d9jh2i1d12dh1d'
-                });
-            })
-
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 401);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid authorization.')
-            })
-        })
         describe('when refresh token doesn\'t exist in cookies', () => {
             beforeAll(async () => {
                 response = await refreshRequest({
