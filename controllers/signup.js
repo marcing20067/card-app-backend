@@ -2,6 +2,8 @@ const User = require('../models/user');
 const MongoError = require('../util/mongoError');
 const messages = require('../messages/messages');
 const OneTimeToken = require('../models/oneTimeToken');
+const bcrypt = require('bcryptjs');
+const config = require('../config/config');
 
 exports.signup = async (req, res, next) => {
     const userData = {
@@ -12,8 +14,14 @@ exports.signup = async (req, res, next) => {
     };
 
     try {
-        const createdUser = await createUser(userData);
-        const createdOneTimeToken = await createOneTimeToken(createdUser._id);
+        const newUser = new User(userData);
+        await newUser.validate();
+        newUser.password = await bcrypt.hash(newUser.password,config.HASHED_PASSWORD_LENGTH);
+        const createdUser = await newUser.save();
+
+        const newOneTimeToken = new OneTimeToken({ creator: createdUser._id });
+        const createdOneTimeToken = await newOneTimeToken.save();
+
         const url = createdOneTimeToken.createUrl('activation');
         console.log(url);
         res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
@@ -25,16 +33,4 @@ exports.signup = async (req, res, next) => {
         }
         res.status(400).send({ message: message || messages.global.invalidData })
     }
-}
-
-const createOneTimeToken = async (creator) => {
-    const newOneTimeToken = new OneTimeToken({ creator: creator });
-    const createdOneTimeToken = await newOneTimeToken.save();
-    return newOneTimeToken;
-}
-
-const createUser = async (user) => {
-    const newUser = new User(user);
-    const createdUser = await newUser.save();
-    return createdUser;
 }

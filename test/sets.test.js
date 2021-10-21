@@ -37,29 +37,6 @@ describe('/sets GET', () => {
             responseStatusShouldBe(response, 200);
         })
     })
-    describe('when request is wrong', () => {
-        describe('when access token is wrong', () => {
-            let response;
-
-            beforeAll(async () => {
-                response = await setsRequest({
-                    customToken: 'wrongToken'
-                });
-            })
-
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 401);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid authorization.')
-            })
-        })
-    })
 })
 
 const findOrCreateSet = async () => {
@@ -75,7 +52,7 @@ const findOrCreateSet = async () => {
 }
 
 const findUser = async () => {
-    const findedUser = await User.findOne(validUser);
+    const findedUser = await User.findOne({ username: validUser.username});
     return findedUser;
 }
 
@@ -134,27 +111,6 @@ describe('/sets/:setId GET', () => {
                 messageShouldBe(response, 'Invalid request data.')
             })
         })
-
-        describe('when access token is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                response = await getSetRequest(null, {
-                    customToken: 'wrong',
-                });
-            })
-
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 401);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid authorization.')
-            })
-        })
     })
 })
 
@@ -206,27 +162,6 @@ describe('/sets/:setId PUT', () => {
         })
     })
     describe('when request is wrong', () => {
-        describe('when access token is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                response = await putSetRequest(null, null, {
-                    customToken: 'wrong',
-                });
-            })
-
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 401);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid authorization.')
-            })
-        })
-
         describe('when :setId param is wrong', () => {
             beforeAll(async () => {
                 const wrongSetId = 'wrongSetId';
@@ -365,27 +300,6 @@ describe('/sets/:setId DELETE', () => {
     })
 
     describe('wrong request', () => {
-        describe('when access token is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                response = await deleteSetRequest(null, {
-                    customToken: 'wrong',
-                });
-            })
-
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 401);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid authorization.')
-            })
-        })
-
         describe('request with wrong :setId param', () => {
             let response;
             beforeAll(async () => {
@@ -460,27 +374,6 @@ describe('/sets/:setId POST', () => {
     })
 
     describe('when request is wrong', () => {
-        describe('when access token is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                response = await createSetRequest(null, {
-                    customToken: 'wrong',
-                });
-            })
-
-            it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
-            })
-
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 401);
-            })
-
-            it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid authorization.')
-            })
-        })
-
         describe('when only name is required', () => {
             let response;
             beforeAll(async () => {

@@ -7,7 +7,8 @@ const config = {
     DB_PASSWORD: '',
     DB_USERNAME: '',
     DB_HOST : '',
-    DB_NAME: ''
+    DB_NAME: '',
+    HASHED_PASSWORD_LENGTH: 0
 }
 
 module.exports = config;

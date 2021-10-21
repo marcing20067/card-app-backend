@@ -1,6 +1,9 @@
 const { validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, findOrCreateValidUser } = require('./testApi');
 const app = require('../app');
 const mongoose = require('mongoose');
+const jsonwebtoken = require('jsonwebtoken');
+jest.mock('jsonwebtoken');
+
 beforeAll(async () => {
     await findOrCreateValidUser();
 })
@@ -10,7 +13,7 @@ afterAll(done => {
 })
 
 
-describe('/refresh GET', () => {
+describe.skip('/refresh GET', () => {
     const refreshRequest = (extraOptions) => {
         return makeHttpRequest(app, {
             method: 'GET',
@@ -23,25 +26,10 @@ describe('/refresh GET', () => {
     describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
-            const refreshTokenCookie = await getRefreshTokenCookie();
-            response = await refreshRequest({
-                customCookie: refreshTokenCookie
-            });
+            response = await refreshRequest();
         })
 
-        const getRefreshTokenCookie = async () => {
-            const cookieResponse = await loginRequest(validUser);
-            const refreshTokenCookie = cookieResponse.header['set-cookie'][0].split(';')[0]
-            return refreshTokenCookie;
-        }
-
-        const loginRequest = (userData) => {
-            return makeHttpRequest(app, {
-                method: 'POST',
-                endpoint: '/login',
-                data: userData
-            })
-        }
+        // jsonwebtoken.verify.mockReturnValue({ refreshToken: '3123120d1', accessToken: 'as0d12d901jd2'})
 
         it('type of response should contain json', () => {
             responseTypeShouldContainJson(response);
@@ -55,13 +43,15 @@ describe('/refresh GET', () => {
             responseBodyShouldContainProperty(response, 'accessToken')
             responseBodyShouldContainProperty(response, 'accessTokenExpiresIn')
         })
+        // jsonwebtoken.verify.mockRestore()
     })
 
     describe('when request is invalid', () => {
         describe('when access token is invalid', () => {
             beforeAll(async () => {
                 response = await refreshRequest({
-                    customToken: 'wrongToken'
+                    isIncludeToken: false,
+                    customCookie: 'refreshToken=d9oiu21d9jh2i1d12dh1d'
                 });
             })
 

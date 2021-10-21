@@ -48,12 +48,12 @@ describe('/signup POST', () => {
         })
 
         it('created user should exists in db', async () => {
-            const findedUser = await User.findOne(newUser);
+            const findedUser = await User.findOne({ username: newUser.username });
             expect(findedUser).not.toBe(null);
         })
 
         it('oneTimeToken should exists in db', async () => {
-            const user = await User.findOne(newUser);
+            const user = await User.findOne({ username: newUser.username });
             const userId = user._id;
             const findedOneTimeToken = await OneTimeToken.findOne({ creator: userId });
             expect(findedOneTimeToken).not.toBe(null);

@@ -4,6 +4,10 @@ const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShoul
 beforeAll(async () => {
     const user = await findOrCreateValidUser();
 })
+
+const bcryptjs = require('bcryptjs');
+jest.mock('bcryptjs');
+
 afterAll(done => {
     mongoose.connection.close()
     done()
@@ -19,9 +23,12 @@ const loginRequest = (userData) => {
 
 describe('/login POST', () => {
     describe('when request is correct', () => {
+        
         let response;
         beforeAll(async () => {
+            bcryptjs.compare.mockResolvedValue(true);
             response = await loginRequest(validUser);
+            bcryptjs.compare.mockRestore();
         })
 
         it('type of response should contain json', () => {
@@ -99,6 +106,33 @@ describe('/login POST', () => {
                     username: 'us',
                 }
                 response = await loginRequest(userData)
+            })
+
+            it('type of response should contain json', () => {
+                responseTypeShouldContainJson(response);
+            })
+
+            it('response status should be 400', () => {
+                responseStatusShouldBe(response, 400);
+            })
+
+            it('message should be correct', () => {
+                messageShouldBe(response, 'User does not exist.')
+            })
+        })
+
+        describe('when valid password is failed', () => {
+            let response;
+            
+            beforeAll(async () => {
+                const userData = {
+                    ...validUser,
+                    password: 'password',
+                }
+                
+                bcryptjs.compare.mockResolvedValue(false);
+                response = await loginRequest(userData);
+                bcryptjs.compare.mockRestore();
             })
 
             it('type of response should contain json', () => {

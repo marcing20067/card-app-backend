@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const messages = require('../messages/messages');
 const JwtToken = require('../util/token');
+const bcrypt = require('bcryptjs');
 
 exports.login = async (req, res, next) => {
     const userData = {
@@ -11,8 +12,13 @@ exports.login = async (req, res, next) => {
     }
 
     try {
-        const findedUser = await User.findOne(userData);
+        const findedUser = await User.findOne({ email: userData.email, username: userData.username, isActivated: true });
         if (!findedUser) {
+            throw new Error;
+        }
+
+        const isPasswordValid = await bcrypt.compare(userData.password, findedUser.password);
+        if(!isPasswordValid) {
             throw new Error;
         }
 

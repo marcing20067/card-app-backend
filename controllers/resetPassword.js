@@ -9,8 +9,9 @@ exports.resetPassword = async (req, res, next) => {
         if (!findedUser) {
             throw new Error(messages.user.invalidData);
         }
+
         const newOneTimeToken = await new OneTimeToken({ creator: findedUser._id });
-        sendEmailWithLink(newOneTimeToken);
+        sendEmail(newOneTimeToken);
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
     }
     catch (error) {
@@ -18,7 +19,7 @@ exports.resetPassword = async (req, res, next) => {
     }
 }
 
-const sendEmailWithLink = (oneTimeToken) => {
+const sendEmail= (oneTimeToken) => {
     const url = oneTimeToken.createUrl('resetPassword');
     // TODO: Send email
 }

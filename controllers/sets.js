@@ -18,8 +18,10 @@ exports.getSet = async (req, res, next) => {
     const setId = req.params.setId;
 
     try {
-        const filterData = { _id: setId, creator: userId };
-        const findedSet = await Set.findOne(filterData);
+        const findedSet = await Set.findOne({ _id: setId, creator: userId });
+        if(!findedSet) {
+            throw new Error;
+        }
         res.send(findedSet);
     } catch {
         res.status(400).send({ message: messages.global.invalidData })

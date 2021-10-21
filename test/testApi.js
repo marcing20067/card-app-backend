@@ -1,6 +1,10 @@
 const httpRequest = require('supertest');
 const User = require('../models/user');
 const OneTimeToken = require('../models/oneTimeToken');
+
+const jsonwebtoken = require('jsonwebtoken');
+jest.mock('jsonwebtoken');
+
 const validUser = {
     username: 'admin',
     password: 'password',
@@ -50,10 +54,8 @@ const messageShouldBe = (response, correctMessage) => {
     expect(message).toBe(correctMessage);
 }
 
-const makeHttpRequest = async (app, options) => {
-    const { method, endpoint, customCookie, isIncludeToken, data, customToken } = options;
-    const lowercaseMethod = options.method.toLowerCase();
-
+const request = (app, options, lowercaseMethod) => {
+    const { method, endpoint, customCookie, data, customToken } = options;
     let request = httpRequest(app)[lowercaseMethod](endpoint);
 
     if (method === 'POST' || method === 'PUT') {
@@ -63,13 +65,23 @@ const makeHttpRequest = async (app, options) => {
     if (customCookie) {
         request = request.set('Cookie', customCookie)
     }
-
-    if (isIncludeToken) {
-        const authToken = customToken || await getToken(app);
-        request = request.set('Authorization', 'Bearer ' + authToken);
-    }
+    request = request.set('Authorization', 'Bearer ' + 'Randomtoken');
 
     return request;
+}
+
+const makeHttpRequest = async (app, options) => {
+    const { method, endpoint, customCookie, isIncludeToken, data, customToken } = options;
+    const lowercaseMethod = options.method.toLowerCase();
+    if (isIncludeToken) {
+        const findedUser = await User.findOne({ username: validUser.username })
+        jsonwebtoken.verify.mockReturnValue(findedUser);
+    }
+    const response = await request(app, options, lowercaseMethod);
+    if (isIncludeToken) {
+        jsonwebtoken.verify.mockRestore();
+    }
+    return response;
 }
 
 let token;

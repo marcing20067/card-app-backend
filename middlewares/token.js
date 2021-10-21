@@ -9,6 +9,7 @@ const checkTokenAndSetUserData = (req, res, next) => {
         req.userData = userData;
         next();
     } catch (error) {
+        console.log(error);
         res.status(401).send({ message: messages.jwtToken.invalidAccessToken })
     }
 }
