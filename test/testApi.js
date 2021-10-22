@@ -1,7 +1,7 @@
 const httpRequest = require('supertest');
 const User = require('../models/user');
 const OneTimeToken = require('../models/oneTimeToken');
-
+const Set = require('../models/set');
 const jsonwebtoken = require('jsonwebtoken');
 jest.mock('jsonwebtoken');
 
@@ -88,12 +88,21 @@ const request = (app, options, lowercaseMethod) => {
     return request;
 }
 
+const createValidSet = async (customData) => {
+    const newSet = new Set({
+        ...validSet,
+        ...customData
+    });
+    const createdSet = await newSet.save();
+    return createdSet;
+}
+
 const makeHttpRequest = async (app, options) => {
-    const { isIncludeToken, method } = options;
+    const { isIncludeToken, method, customJwtVerifyReturn } = options;
     const lowercaseMethod = method.toLowerCase();
     if (isIncludeToken) {
         const findedUser = await User.findOne({ username: validUser.username })
-        jsonwebtoken.verify.mockReturnValue(findedUser);
+        jsonwebtoken.verify.mockReturnValue(customJwtVerifyReturn || findedUser);
     }
     const response = await request(app, options, lowercaseMethod);
     if (isIncludeToken) {
@@ -202,5 +211,6 @@ module.exports = {
     findOrCreateValidUser,
     createValidUser,
     createOneTimeToken,
-    getRandomUserData
+    getRandomUserData,
+    createValidSet
 }

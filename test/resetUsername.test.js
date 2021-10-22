@@ -80,8 +80,6 @@ describe('/resetUsername POST', () => {
                 oneTimeToken = await newOneTimeToken.save();
             })
 
-
-
             let response;
             beforeAll(async () => {
                 const wrongUsername = '';
