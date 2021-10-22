@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const crypto = require('crypto');
 const config = require('../config/config');
+const email = require('../util/email');
 
 const generateTokenData = () => {
     return {
@@ -72,7 +73,12 @@ OneTimeTokenSchema.methods.makeValid = async function () {
 
 OneTimeTokenSchema.methods.sendEmailWithToken = function (tokenType) {
     const url = this.createUrl(tokenType);
-    // console.log(url);
+    // return email.sendMail({
+    //     to: this.email,
+    //     from: 'card-app@backend.com',
+    //     subject: ``,
+    //     html: `<h1>${tokenType} now!</h1> Click this link to <a href="${url}">${tokenType}</a>`
+    // })
 }
 
 module.exports = mongoose.model('OneTimeToken', OneTimeTokenSchema);

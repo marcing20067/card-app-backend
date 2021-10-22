@@ -8,7 +8,8 @@ const config = {
     DB_USERNAME: '',
     DB_HOST : '',
     DB_NAME: '',
-    HASHED_PASSWORD_LENGTH: 0
+    HASHED_PASSWORD_LENGTH: 0,
+    SENDGRID_API_KEY: ''
 }
 
 module.exports = config;
