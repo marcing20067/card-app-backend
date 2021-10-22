@@ -8,7 +8,7 @@ jest.mock('jsonwebtoken');
 const generateValidUser = () => {
     const alphabet = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'
     let username = '';
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < 15; i++) {
         const randomIndex = Math.floor(Math.random() * alphabet.length);
         const randomLetter = alphabet[randomIndex];
         username = username + randomLetter;

@@ -33,7 +33,7 @@ describe('/login POST', () => {
         let response;
         beforeAll(async () => {
             bcryptjs.compare.mockResolvedValue(true);
-            response = await loginRequest(validUser);
+            response = await loginRequest(user._doc);
             bcryptjs.compare.mockRestore();
         })
 

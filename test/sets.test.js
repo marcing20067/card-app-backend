@@ -24,6 +24,7 @@ describe('/sets GET', () => {
             method: 'GET',
             endpoint: '/sets',
             isIncludeToken: true,
+            customJwtVerifyReturn: user,
             ...extraOptions
         })
     }
@@ -51,22 +52,21 @@ describe('/sets/:setId GET', () => {
             method: 'GET',
             endpoint: `/sets/${setId}`,
             isIncludeToken: true,
+            customJwtVerifyReturn: user,
             ...extraOptions
         });
     }
 
-    describe('correct request', () => {
+    describe('when request is correct', () => {
         let setId;
         beforeAll(async () => {
-            const createdSet = await createValidSet({ creator: user._id});
+            const createdSet = await createValidSet({ creator: user._id });
             setId = createdSet._id;
         })
 
         let response;
         beforeAll(async () => {
-            response = await getSetRequest(setId, {
-                customJwtVerifyReturn: user
-            });
+            response = await getSetRequest(setId);
         })
 
         afterAll(async () => {
@@ -123,6 +123,7 @@ describe('/sets/:setId PUT', () => {
             endpoint: `/sets/${setId}`,
             isIncludeToken: true,
             data: newSet,
+            customJwtVerifyReturn: user,
             ...extraOptions
         });
     }
@@ -130,7 +131,7 @@ describe('/sets/:setId PUT', () => {
     describe('when request is correct', () => {
         let setId;
         beforeAll(async () => {
-            const createdSet = await createValidSet({ creator: user._id});
+            const createdSet = await createValidSet({ creator: user._id });
             setId = createdSet._id;
         });
 
@@ -325,6 +326,7 @@ describe('/sets/:setId DELETE', () => {
             method: 'DELETE',
             endpoint: `/sets/${setId}`,
             isIncludeToken: true,
+            customJwtVerifyReturn: user,
             ...extraOptions
         });
     }
@@ -338,9 +340,7 @@ describe('/sets/:setId DELETE', () => {
 
         let response;
         beforeAll(async () => {
-            response = await deleteSetRequest(setId, {
-                customJwtVerifyReturn: user
-            });
+            response = await deleteSetRequest(setId);
         })
 
         afterAll(async () => {
@@ -389,6 +389,7 @@ describe('/sets/:setId POST', () => {
             endpoint: '/sets',
             isIncludeToken: true,
             data: newSet,
+            customJwtVerifyReturn: user,
             ...extraOptions
         })
     }

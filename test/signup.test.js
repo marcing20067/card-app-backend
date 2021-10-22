@@ -1,11 +1,9 @@
-const { makeHttpRequest, responseStatusShouldBe, responseTypeShouldContainJson, newUser, findOrCreateValidUser, messageShouldBe } = require('./testApi');
+const { makeHttpRequest, newUser, createValidUser } = require('./testApi');
 const app = require('../app');
 const mongoose = require('mongoose');
 const User = require('../models/user');
 const OneTimeToken = require('../models/OneTimeToken');
-beforeAll(async () => {
-    await findOrCreateValidUser();
-})
+
 afterAll(done => {
     mongoose.connection.close()
     done()
@@ -21,30 +19,30 @@ describe('/signup POST', () => {
             })
     }
 
-    beforeAll(async () => {
-        const findedUser = await User.findOne({ username: newUser.username })
-        if(findedUser) {
-            await User.deleteOne({ username: newUser.username });
-            await OneTimeToken.deleteOne({ creator: findedUser._id });
-        }
-    })
-
     describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
             response = await signupRequest(newUser);
         })
 
+        afterAll(async () => {
+            const findedUser = await User.findOne({ username: newUser.username });
+            await User.findByIdAndDelete(findedUser._id);
+            await OneTimeToken.deleteOne({ creator: findedUser._id });
+        })
+
         it('type of response should contain json', () => {
-            responseTypeShouldContainJson(response);
+            const contentType = response.headers['content-type'];
+            expect(/json/.test(contentType))
         })
 
         it('response status should be 201', () => {
-            responseStatusShouldBe(response, 201);
+            expect(response.status).toBe(201);
         })
 
         it('message should be correct', () => {
-            messageShouldBe(response, 'Check your email.')
+            const message = response.body.message;
+            expect(message).toBe('Check your email.');
         })
 
         it('created user should exists in db', async () => {
@@ -54,8 +52,7 @@ describe('/signup POST', () => {
 
         it('oneTimeToken should exists in db', async () => {
             const user = await User.findOne({ username: newUser.username });
-            const userId = user._id;
-            const findedOneTimeToken = await OneTimeToken.findOne({ creator: userId });
+            const findedOneTimeToken = await OneTimeToken.findOne({ creator: user._id });
             expect(findedOneTimeToken).not.toBe(null);
         })
     })
@@ -72,15 +69,17 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Username is too short.')
+                const message = response.body.message;
+                expect(message).toBe('Username is too short.');
             })
         })
 
@@ -95,15 +94,18 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
+
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Password is too short.')
+                const message = response.body.message;
+                expect(message).toBe('Password is too short.');
             })
         })
 
@@ -115,15 +117,17 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Username is required.')
+                const message = response.body.message;
+                expect(message).toBe('Username is required.');
             })
         })
 
@@ -138,15 +142,17 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Password is required.')
+                const message = response.body.message;
+                expect(message).toBe('Password is required.');
             })
         })
 
@@ -161,15 +167,18 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
+
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Username is required.')
+                const message = response.body.message;
+                expect(message).toBe('Username is required.');
             })
         })
 
@@ -184,15 +193,18 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
+
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Email is required.')
+                const message = response.body.message;
+                expect(message).toBe('Email is required.');
             })
         })
 
@@ -207,49 +219,47 @@ describe('/signup POST', () => {
             });
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid request data.')
+                const message = response.body.message;
+                expect(message).toBe('Invalid request data.');
             })
         })
 
         describe('when username is already taken', () => {
+            let user;
+            beforeAll(async () => {
+                user = await createValidUser();
+            })
+
             let response;
             beforeAll(async () => {
-                if (!(await isUserExists({ ...newUser, username: 'taken', isActivated: true }))) {
-                    await createUser({ ...newUser, username: 'taken', isActivated: true })
-                }
-            })
-            beforeAll(async () => {
-                response = await signupRequest({ ...newUser, username: 'taken'});
+                response = await signupRequest(user._doc);
             })
 
-            const isUserExists = async (userData) => {
-                const findedUser = await User.findOne(userData);
-                return !!findedUser;
-            }
-
-            const createUser = async (userData) => {
-                const user = new User(userData);
-                await user.save();
-            }
+            afterAll(async () => {
+                await User.findByIdAndRemove(user._id)
+            })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 409', () => {
-                responseStatusShouldBe(response, 409);
+                expect(response.status).toBe(409);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Username is already taken.')
+                const message = response.body.message;
+                expect(message).toBe('Username is already taken.');
             })
         })
     })

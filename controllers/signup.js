@@ -12,7 +12,7 @@ exports.signup = async (req, res, next) => {
         password: req.body.password,
         email: req.body.email,
     };
-
+    
     try {
         const newUser = new User(userData);
         await newUser.validate();
