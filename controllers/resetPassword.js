@@ -38,7 +38,6 @@ exports.resetPasswordWithToken = async (req, res, next) => {
         await updatePasswordForUserById(findedOneTimeToken.creator, newPassword);
         res.send({ message: 'Password has been changed successfully.' })
     } catch (error) {
-        console.log(error);
         res.status(400).send({ message: error.message || messages.global.invalidData });
     }
 }
