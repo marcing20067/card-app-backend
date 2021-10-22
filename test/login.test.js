@@ -1,12 +1,19 @@
 const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, messageShouldBe, makeHttpRequest, findOrCreateValidUser, validUser } = require('./testApi');
-beforeAll(async () => {
-    const user = await findOrCreateValidUser();
-})
+const { makeHttpRequest, createValidUser,  validUser } = require('./testApi');
 
 const bcryptjs = require('bcryptjs');
 jest.mock('bcryptjs');
+const User = require('../models/user');
+
+let user;
+beforeAll(async () => {
+    user = await createValidUser();
+})
+
+afterAll(async () => {
+    await User.deleteOne({ _id: user._id });
+})
 
 afterAll(done => {
     mongoose.connection.close()
@@ -23,7 +30,6 @@ const loginRequest = (userData) => {
 
 describe('/login POST', () => {
     describe('when request is correct', () => {
-        
         let response;
         beforeAll(async () => {
             bcryptjs.compare.mockResolvedValue(true);
@@ -32,16 +38,17 @@ describe('/login POST', () => {
         })
 
         it('type of response should contain json', () => {
-            responseTypeShouldContainJson(response);
+            const contentType = response.headers['content-type'];
+            expect(/json/.test(contentType))
         })
 
         it('response status should be 200', () => {
-            responseStatusShouldBe(response, 200);
+            expect(response.status).toBe(200);
         })
 
         it('response body should contain accessToken and accessTokenExpiresIn', () => {
-            responseBodyShouldContainProperty(response, 'accessToken')
-            responseBodyShouldContainProperty(response, 'accessTokenExpiresIn')
+            expect(response.body).toHaveProperty('accessToken');
+            expect(response.body).toHaveProperty('accessTokenExpiresIn');
         })
 
         it('cookies should contain refreshToken', () => {
@@ -63,15 +70,17 @@ describe('/login POST', () => {
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'User does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('User does not exist.');
             })
         })
 
@@ -86,15 +95,17 @@ describe('/login POST', () => {
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'User does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('User does not exist.');
             })
         })
 
@@ -109,67 +120,70 @@ describe('/login POST', () => {
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'User does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('User does not exist.');
             })
         })
 
         describe('when valid password is failed', () => {
             let response;
-            
             beforeAll(async () => {
                 const userData = {
                     ...validUser,
                     password: 'password',
                 }
-                
+
                 bcryptjs.compare.mockResolvedValue(false);
                 response = await loginRequest(userData);
                 bcryptjs.compare.mockRestore();
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'User does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('User does not exist.');
             })
         })
 
         describe('when password is invalid', () => {
             let response;
-
             beforeAll(async () => {
                 const userData = {
                     ...validUser,
                     password: 'pas',
                 }
-
                 response = await loginRequest(userData)
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'User does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('User does not exist.');
             })
         })
     })

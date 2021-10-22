@@ -5,10 +5,28 @@ const OneTimeToken = require('../models/oneTimeToken');
 const jsonwebtoken = require('jsonwebtoken');
 jest.mock('jsonwebtoken');
 
+const generateValidUser = () => {
+    const alphabet = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'
+    let username = '';
+    for (let i = 0; i < 4; i++) {
+        const randomIndex = Math.floor(Math.random() * alphabet.length);
+        const randomLetter = alphabet[randomIndex];
+        username = username + randomLetter;
+    }
+
+    return {
+        username: username,
+        password: 'password',
+        email: 'email@mail.pl',
+        isActivated: true
+    }
+}
+
 const validUser = {
     username: 'admin',
     password: 'password',
-    email: 'email@mail.pl'
+    email: 'email@mail.pl',
+    isActivated: true
 }
 
 const newUser = {
@@ -70,7 +88,7 @@ const request = (app, options, lowercaseMethod) => {
     return request;
 }
 
-const makeHttpRequest = async (app, options) => {    
+const makeHttpRequest = async (app, options) => {
     const { isIncludeToken, method } = options;
     const lowercaseMethod = method.toLowerCase();
     if (isIncludeToken) {
@@ -104,6 +122,13 @@ const findOrCreateValidUser = async () => {
         return findedUser;
     }
     const createdUser = await createUser({ ...validUser, isActivated: true });
+    return createdUser;
+}
+
+const createValidUser = async () => {
+    const userData = generateValidUser();
+    const newUser = new User(userData);
+    const createdUser = await newUser.save();
     return createdUser;
 }
 
@@ -175,6 +200,7 @@ module.exports = {
     makeHttpRequest,
     getToken,
     findOrCreateValidUser,
+    createValidUser,
     createOneTimeToken,
     getRandomUserData
 }
