@@ -70,4 +70,9 @@ OneTimeTokenSchema.methods.makeValid = async function () {
     return updatedOneTimeToken;
 }
 
+OneTimeTokenSchema.methods.sendEmailWithToken = function (tokenType) {
+    const url = this.createUrl(tokenType);
+    // console.log(url);
+}
+
 module.exports = mongoose.model('OneTimeToken', OneTimeTokenSchema);

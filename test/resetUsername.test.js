@@ -137,7 +137,7 @@ describe('/resetUsername/:oneTimeToken POST', () => {
             });
             response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                 data: {
-                    oldUsername: user.username,
+                    currentUsername: user.username,
                     newUsername: 'extraNewUsername123!'
                 }
             });
@@ -186,7 +186,7 @@ describe('/resetUsername/:oneTimeToken POST', () => {
             beforeAll(async () => {
                 response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                     data: {
-                        oldUsername: user.username,
+                        currentUsername: user.username,
                         newUsername: user.username
                     }
                 });

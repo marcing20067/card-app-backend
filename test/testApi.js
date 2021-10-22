@@ -55,7 +55,7 @@ const messageShouldBe = (response, correctMessage) => {
 }
 
 const request = (app, options, lowercaseMethod) => {
-    const { method, endpoint, customCookie, data, customToken } = options;
+    const { method, endpoint, customCookie, data } = options;
     let request = httpRequest(app)[lowercaseMethod](endpoint);
 
     if (method === 'POST' || method === 'PUT') {
@@ -70,9 +70,9 @@ const request = (app, options, lowercaseMethod) => {
     return request;
 }
 
-const makeHttpRequest = async (app, options) => {
-    const { method, endpoint, customCookie, isIncludeToken, data, customToken } = options;
-    const lowercaseMethod = options.method.toLowerCase();
+const makeHttpRequest = async (app, options) => {    
+    const { isIncludeToken, method } = options;
+    const lowercaseMethod = method.toLowerCase();
     if (isIncludeToken) {
         const findedUser = await User.findOne({ username: validUser.username })
         jsonwebtoken.verify.mockReturnValue(findedUser);

@@ -26,6 +26,7 @@ exports.login = async (req, res, next) => {
             id: findedUser._id,
             isActivated: findedUser
         }
+        
         const tokenData = new JwtToken(userDataPayload);
         tokenData.setRefreshTokenCookies(res);
         const accessTokenData = tokenData.getAccessTokenData();

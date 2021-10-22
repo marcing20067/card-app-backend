@@ -137,7 +137,7 @@ describe('/resetPassword/:oneTimeToken POST', () => {
             });
             response = await resetPasswordWithTokenRequest(oneTimeToken.resetPassword.token, {
                 data: {
-                    oldPassword: user.password,
+                    currentPassword: user.password,
                     newPassword: 'extraNewPassword123!'
                 }
             });
@@ -186,7 +186,7 @@ describe('/resetPassword/:oneTimeToken POST', () => {
             beforeAll(async () => {
                 response = await resetPasswordWithTokenRequest(oneTimeToken.resetPassword.token, {
                     data: {
-                        oldPassword: user.password,
+                        currentPassword: user.password,
                         newPassword: user.password
                     }
                 });

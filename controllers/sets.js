@@ -73,8 +73,8 @@ exports.addSet = async (req, res, next) => {
     
     try {
         const newSet = new Set(set);
-        const addedSet = await newSet.save();
-        res.status(201).send(addedSet);
+        const createdSet = await newSet.save();
+        res.status(201).send(createdSet);
     } catch (error) {
         const mongoError = new MongoError(error);
         const message = mongoError.getMessage();

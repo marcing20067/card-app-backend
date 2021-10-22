@@ -3,11 +3,11 @@ const OneTimeToken = require('../models/oneTimeToken');
 const messages = require('../messages/messages');
 
 exports.activate = async (req, res) => {
-    const activationToken = req.params.activationToken;
+    const { activationToken } = req.params;
     try {
         const findedOneTimeToken = await OneTimeToken.findOne({ 'activation.token': activationToken });
         if(!findedOneTimeToken) {
-            throw new Error();
+            throw new Error;
         }
 
         const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation');
