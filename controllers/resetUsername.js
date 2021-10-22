@@ -36,7 +36,6 @@ exports.resetUsernameWithToken = async (req, res, next) => {
         await updatePasswordForUser({ _id: findedOneTimeToken.creator }, newUsername);
         res.send({ message: 'Username has been changed successfully.' })
     } catch (error) {
-        console.log(error);
         res.status(400).send({ message: error.message || messages.global.invalidData });
     }
 }

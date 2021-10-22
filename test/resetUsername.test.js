@@ -1,28 +1,13 @@
 const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, getRandomUserData, messageShouldBe, createOneTimeToken } = require('./testApi');
+const { makeHttpRequest, createValidUser } = require('./testApi');
 const OneTimeToken = require('../models/oneTimeToken');
 const User = require('../models/user');
 
 afterAll(done => {
-    mongoose.connection.close()
+    mongoose.connection.close();
     done();
 })
-
-const createUser = async (userData) => {
-    const newUser = new User(userData);
-    const createdUser = newUser.save();
-    return createdUser;
-}
-
-const deleteOneTimeToken = async (filter) => {
-    await OneTimeToken.deleteOne(filter);
-}
-
-const deleteUser = async (userData) => {
-    await User.deleteOne(userData);
-}
-
 describe('/resetUsername POST', () => {
     const resetUsernameRequest = (username, extraOptions) => {
         return makeHttpRequest(app, {
@@ -37,17 +22,21 @@ describe('/resetUsername POST', () => {
 
     describe('when request is correct', () => {
         let user;
+        beforeAll(async () => {
+            user = await createValidUser();
+        })
+
         let oneTimeToken;
         beforeAll(async () => {
-            user = await createUser(getRandomUserData());
-            oneTimeToken = createOneTimeToken({
+            const newOneTimeToken = new OneTimeToken({
                 creator: user._id
             });
+            oneTimeToken = await newOneTimeToken.save();
         })
 
         afterAll(async () => {
-            await deleteUser({ _id: user._id });
-            await deleteOneTimeToken({ creator: user._id })
+            await User.findByIdAndDelete(user._id);
+            await OneTimeToken.deleteOne({ creator: user._id })
         })
 
         let response;
@@ -55,25 +44,22 @@ describe('/resetUsername POST', () => {
             response = await resetUsernameRequest(user.username);
         })
 
-        const getOneTimeToken = async (filter) => {
-            const findedOneTimeToken = await OneTimeToken.findOne(filter);
-            return findedOneTimeToken;
-        }
-
         it('type of response should contain json', () => {
-            responseTypeShouldContainJson(response);
+            const contentType = response.headers['content-type'];
+            expect(/json/.test(contentType))
         })
 
         it('response status should be 200', () => {
-            responseStatusShouldBe(response, 200);
+            expect(response.status).toBe(200);
         })
 
         it('message should be correct', () => {
-            messageShouldBe(response, 'Check your email.')
+            const message = response.body.message;
+            expect(message).toBe('Check your email.');
         })
 
         it('the one time token should be updated', async () => {
-            const findedOneTimeToken = await getOneTimeToken({ creator: user._id });
+            const findedOneTimeToken = await OneTimeToken.findOne({ creator: user._id });
             expect(findedOneTimeToken).not.toEqual(oneTimeToken);
         })
     })
@@ -82,18 +68,19 @@ describe('/resetUsername POST', () => {
     describe('when request is wrong', () => {
         describe('when username is wrong', () => {
             let user;
-            let oneTimeToken;
             beforeAll(async () => {
-                user = await createUser(getRandomUserData());
-                oneTimeToken = await createOneTimeToken({
-                    creator: user._id
-                });
+                user = await createValidUser();
             })
 
-            afterAll(async () => {
-                await deleteUser({ _id: user._id });
-                await deleteOneTimeToken({ creator: user._id })
+            let oneTimeToken;
+            beforeAll(async () => {
+                const newOneTimeToken = new OneTimeToken({
+                    creator: user._id
+                });
+                oneTimeToken = await newOneTimeToken.save();
             })
+
+
 
             let response;
             beforeAll(async () => {
@@ -101,16 +88,23 @@ describe('/resetUsername POST', () => {
                 response = await resetUsernameRequest(wrongUsername);
             })
 
+            afterAll(async () => {
+                await User.findByIdAndDelete(user._id);
+                await OneTimeToken.deleteOne({ creator: user._id })
+            })
+
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'User does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('User does not exist.');
             })
         })
     })
@@ -128,13 +122,20 @@ describe('/resetUsername/:oneTimeToken POST', () => {
 
     describe('when request is correct', () => {
         let user;
-        let oneTimeToken;
-        let response;
         beforeAll(async () => {
-            user = await createUser(getRandomUserData());
-            oneTimeToken = await createOneTimeToken({
+            user = await createValidUser();
+        })
+
+        let oneTimeToken;
+        beforeAll(async () => {
+            const newOneTimeToken = new OneTimeToken({
                 creator: user._id
             });
+            oneTimeToken = await newOneTimeToken.save();
+        })
+
+        let response;
+        beforeAll(async () => {
             response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                 data: {
                     currentUsername: user.username,
@@ -144,20 +145,22 @@ describe('/resetUsername/:oneTimeToken POST', () => {
         })
 
         afterAll(async () => {
-            await deleteUser({ _id: user._id })
-            await deleteOneTimeToken({ creator: user._id })
+            await User.findByIdAndDelete(user._id);
+            await OneTimeToken.deleteOne({ creator: user._id })
         })
 
         it('type of response should contain json', () => {
-            responseTypeShouldContainJson(response);
+            const contentType = response.headers['content-type'];
+            expect(/json/.test(contentType))
         })
 
         it('response status should be 200', () => {
-            responseStatusShouldBe(response, 200);
+            expect(response.status).toBe(200);
         })
 
         it('message should be correct', () => {
-            messageShouldBe(response, 'Username has been changed successfully.')
+            const message = response.body.message;
+            expect(message).toBe('Username has been changed successfully.');
         })
 
         it('user username should be changed', async () => {
@@ -169,18 +172,23 @@ describe('/resetUsername/:oneTimeToken POST', () => {
 
     describe('when request is wrong', () => {
         let user;
+        beforeAll(async () => {
+            user = await createValidUser();
+        })
+
         let oneTimeToken;
         beforeAll(async () => {
-            user = await createUser(getRandomUserData());
-            oneTimeToken = await createOneTimeToken({
+            const newOneTimeToken = new OneTimeToken({
                 creator: user._id
             });
+            oneTimeToken = await newOneTimeToken.save();
         })
 
         afterAll(async () => {
-            await deleteUser({ _id: user._id })
-            await deleteOneTimeToken({ creator: user._id })
+            await User.findByIdAndDelete(user._id);
+            await OneTimeToken.deleteOne({ creator: user._id })
         })
+
         describe('when the username is the same as the previous one', () => {
             let response;
             beforeAll(async () => {
@@ -193,15 +201,18 @@ describe('/resetUsername/:oneTimeToken POST', () => {
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
+
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'The username is the same as the previous one.')
+                const message = response.body.message;
+                expect(message).toBe('The username is the same as the previous one.');
             })
         })
 
@@ -213,15 +224,17 @@ describe('/resetUsername/:oneTimeToken POST', () => {
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid request data.')
+                const message = response.body.message;
+                expect(message).toBe('Invalid request data.');
             })
         })
     })
