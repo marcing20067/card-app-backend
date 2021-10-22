@@ -1,24 +1,31 @@
-const { validUser, responseStatusShouldBe, responseTypeShouldContainJson, responseBodyShouldContainProperty, makeHttpRequest, messageShouldBe, findOrCreateValidUser } = require('./testApi');
+const { makeHttpRequest, createValidUser } = require('./testApi');
 const app = require('../app');
 const mongoose = require('mongoose');
+const User = require('../models/user');
+
 const jsonwebtoken = require('jsonwebtoken');
 jest.mock('jsonwebtoken');
 
+let user;
 beforeAll(async () => {
-    await findOrCreateValidUser();
+    user = await createValidUser();
 })
+
+afterAll(async () => {
+    await User.deleteOne({ _id: user._id });
+})
+
 afterAll(done => {
     mongoose.connection.close()
     done()
 })
 
 
-describe.skip('/refresh GET', () => {
+describe('/refresh GET', () => {
     const refreshRequest = (extraOptions) => {
         return makeHttpRequest(app, {
             method: 'GET',
             endpoint: '/refresh',
-            isIncludeToken: true,
             ...extraOptions
         });
     }
@@ -26,44 +33,47 @@ describe.skip('/refresh GET', () => {
     describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
+            jsonwebtoken.verify.mockReturnValue(user);
+            jsonwebtoken.sign.mockReturnValue('token')
             response = await refreshRequest();
+            jest.restoreAllMocks()
         })
 
-        // jsonwebtoken.verify.mockReturnValue({ refreshToken: '3123120d1', accessToken: 'as0d12d901jd2'})
-
         it('type of response should contain json', () => {
-            responseTypeShouldContainJson(response);
+            const contentType = response.headers['content-type'];
+            expect(/json/.test(contentType))
         })
 
         it('response status should be 201', () => {
-            responseStatusShouldBe(response, 201);
+            expect(response.statusCode).toBe(201);
         })
 
         it('response body should contain access accessToken and accessTokenExpiresIn', () => {
-            responseBodyShouldContainProperty(response, 'accessToken')
-            responseBodyShouldContainProperty(response, 'accessTokenExpiresIn')
+            expect(response.body).toHaveProperty('accessToken')
+            expect(response.body).toHaveProperty('accessTokenExpiresIn')
         })
-        // jsonwebtoken.verify.mockRestore()
     })
 
     describe('when request is invalid', () => {
         describe('when refresh token doesn\'t exist in cookies', () => {
             beforeAll(async () => {
                 response = await refreshRequest({
-                    customCookie: null
+                    isIncludeToken: true
                 });
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
-            it('response status should be 401', () => {
-                responseStatusShouldBe(response, 400);
+            it('response status should be 400', () => {
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Invalid refresh token.')
+                const message = response.body.message;
+                expect(message).toBe('Invalid refresh token.')
             })
         })
     })

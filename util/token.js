@@ -9,7 +9,6 @@ module.exports = class JwtToken {
     createTokenData(payload) {
         const accessToken = jwt.sign(payload, config.ACCESS_TOKEN);
         const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN);
-
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }
