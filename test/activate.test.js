@@ -1,44 +1,30 @@
 const app = require('../app');
 const mongoose = require('mongoose');
-const { responseStatusShouldBe, responseTypeShouldContainJson, makeHttpRequest, findOrCreateValidUser, createOneTimeToken, messageShouldBe, validUser } = require('./testApi');
-
+const { makeHttpRequest } = require('./testApi');
 const OneTimeToken = require('../models/oneTimeToken');
 const User = require('../models/user');
-
-let user;
-beforeAll(async () => {
-   user = await createUnactivatedUser();
-})
-
-const createUnactivatedUser = async () => {
-    const newUser = new User({
-        username: 'unActivated',
-        password: 'password',
-        email: 'xd@mail.pl',
-        isActivated: false
-    });
-    const createdUser = await newUser.save();
-    return createdUser;
-}
-
-afterAll(async () => {
-    await deleteUser({
-        username: 'unActivated',
-        password: 'password',
-        email: 'xd@mail.pl'
-    })
-})
 
 afterAll(done => {
     mongoose.connection.close()
     done();
 })
 
-const deleteUser = async (filterData) => {
-    await User.deleteOne(filterData);
-}
-
 describe('/activate/:token GET', () => {
+    let user;
+    beforeAll(async () => {
+        const unActivatedUser = new User({
+            username: 'unActivated',
+            password: 'password',
+            email: 'xd@mail.pl',
+            isActivated: false
+        });
+        user = await unActivatedUser.save();
+    })
+
+    afterAll(async () => {
+        await User.findByIdAndDelete({ _id: user._id });
+    })
+
     const activateRequest = (activationToken) => {
         return makeHttpRequest(app, {
             method: 'GET',
@@ -47,81 +33,85 @@ describe('/activate/:token GET', () => {
     }
 
     describe('when request is correct', () => {
-        const deleteOneTimeToken = async (filterData) => {
-            await OneTimeToken.deleteOne(filterData)
-        }
-
         describe('when the token is not expired', () => {
+            beforeAll(async () => {
+                await User.updateOne({ _id: user._id }, { $set: { isActivated: false } })
+            })
+
+            let oneTimeToken;
+            beforeAll(async () => {
+                const newOneTimeToken = new OneTimeToken({ creator: user._id })
+                oneTimeToken = await newOneTimeToken.save();
+            })
+
             let response;
             beforeAll(async () => {
-                await setisActivatedToValueForUser(false)
-            })
-            const setisActivatedToValueForUser = async (value) => {
-                await User.updateOne({ _id: user._id }, { $set: { isActivated: value}})
-            }
-            beforeAll(async () => {
-                const oneTimeToken = await createOneTimeToken({ creator: user._id});
                 response = await activateRequest(oneTimeToken.activation.token);
             })
 
             afterAll(async () => {
-                await deleteOneTimeToken({ creator: user._id });
-                await setisActivatedToValueForUser(true)
+                await OneTimeToken.deleteOne({ creator: user._id });
+                await User.updateOne({ _id: user._id }, { $set: { isActivated: true } })
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 200', () => {
-                responseStatusShouldBe(response, 200);
+                expect(response.status).toBe(200);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'The user has been activated successfully.')
+                const message = response.body.message;
+                expect(message).toBe('The user has been activated successfully.');
             })
 
             it('the isActivated of user should be true', async () => {
-                const findedUser = await User.findOne({ ...validUser });
+                const findedUser = await User.findById(user._id);
                 expect(findedUser.isActivated).toBe(true)
             })
         })
         describe('when the token is expired', () => {
-            let response;
-            let createdOneTimeToken;
+            let oneTimeToken;
             beforeAll(async () => {
-                const oneTimeToken = await createOneTimeToken({
+                const newOneTimeTokenWithExpiredActivation = new OneTimeToken({
                     activation: {
                         token: 'dasud92ddsay9dsa12IYDsuadia',
                         endOfValidity: 1
                     },
                     creator: user._id
-                });
-                createdOneTimeToken = oneTimeToken;
+                })
+                oneTimeToken = await newOneTimeTokenWithExpiredActivation.save();
+            })
+
+            let response;
+            beforeAll(async () => {
                 response = await activateRequest(oneTimeToken.activation.token);
             })
 
             afterAll(async () => {
-                await deleteOneTimeToken({ 'creator': createdOneTimeToken.creator });
+                await OneTimeToken.deleteOne({ creator: oneTimeToken.creator });
             })
 
-
-
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 200', () => {
-                responseStatusShouldBe(response, 200);
+                expect(response.status).toBe(200);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'The previous token has expired. Check the email and go to the new link.')
+                const message = response.body.message;
+                expect(message).toBe('The previous token has expired. Check the email and go to the new link.');
             })
 
             it('the token should be different from the previous one', async () => {
-                const findedOneTimeToken = await OneTimeToken.findOne({ creator: createdOneTimeToken.creator })
-                const oldToken = createdOneTimeToken.activation.token;
+                const findedOneTimeToken = await OneTimeToken.findOne({ creator: oneTimeToken.creator })
+                const oldToken = oneTimeToken.activation.token;
                 expect(findedOneTimeToken.activation.token).not.toBe(oldToken)
             })
         })
@@ -135,15 +125,17 @@ describe('/activate/:token GET', () => {
             })
 
             it('type of response should contain json', () => {
-                responseTypeShouldContainJson(response);
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {
-                responseStatusShouldBe(response, 400);
+                expect(response.status).toBe(400);
             })
 
             it('message should be correct', () => {
-                messageShouldBe(response, 'Token does not exist.')
+                const message = response.body.message;
+                expect(message).toBe('Token does not exist.');
             })
         })
     })
