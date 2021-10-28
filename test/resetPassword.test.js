@@ -35,7 +35,7 @@ describe('/resetPassword POST', () => {
         })
 
         afterAll(async () => {
-            await User.findByIdAndDelete({ _id: user._id });
+            await User.deleteOne({ _id: user._id });
             await OneTimeToken.deleteOne({ creator: user._id });
         })
 
@@ -81,7 +81,7 @@ describe('/resetPassword POST', () => {
             })
 
             afterAll(async () => {
-                await User.findByIdAndDelete({ _id: user._id });
+                await User.deleteOne({ _id: user._id });
                 await OneTimeToken.deleteOne({ creator: user._id });
             })
 
@@ -143,7 +143,7 @@ describe('/resetPassword/:oneTimeToken POST', () => {
         })
 
         afterAll(async () => {
-            await User.findByIdAndDelete({ _id: user._id });
+            await User.deleteOne({ _id: user._id });
             await OneTimeToken.deleteOne({ creator: user._id });
         })
 
@@ -183,7 +183,7 @@ describe('/resetPassword/:oneTimeToken POST', () => {
         })
 
         afterAll(async () => {
-            await User.findByIdAndDelete({ _id: user._id });
+            await User.deleteOne({ _id: user._id });
             await OneTimeToken.deleteOne({ creator: user._id });
         })
         describe('when the password is the same as the previous one', () => {

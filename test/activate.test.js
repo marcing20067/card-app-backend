@@ -22,7 +22,7 @@ describe('/activate/:token GET', () => {
     })
 
     afterAll(async () => {
-        await User.findByIdAndDelete({ _id: user._id });
+        await User.deleteOne({ _id: user._id });
     })
 
     const activateRequest = (activationToken) => {

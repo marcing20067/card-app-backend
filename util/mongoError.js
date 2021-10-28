@@ -1,3 +1,5 @@
+const messages = require('../messages/messages');
+
 module.exports = class MongoError {
     constructor(error) {
         this.error = error;
@@ -16,7 +18,11 @@ module.exports = class MongoError {
             return `${formattedProperty} is already taken.`
         }
 
-        if (this.error.errors) {
+        if (this.isValidationError()) {
+            if (this.error.path) {
+                return messages.global.invalidData;
+            }
+
             const wrongProperty = this.getWrongProperty()
             if (!wrongProperty) {
                 return;
@@ -31,8 +37,6 @@ module.exports = class MongoError {
                 const errorMessage = `${wrongProperty} is too short.`;
                 return errorMessage;
             }
-
-            return errorMessage;
         }
     }
 
@@ -50,6 +54,10 @@ module.exports = class MongoError {
 
     isDuplicateError() {
         return this.error.code === 11000;
+    }
+
+    isValidationError() {
+        return !!this.error.errors || !!this.error.path;
     }
 
     capitalizeFirstLetter(string) {

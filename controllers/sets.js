@@ -1,15 +1,13 @@
 const Set = require('../models/set');
 const messages = require('../messages/messages');
 const MongoError = require('../util/mongoError');
-
 exports.getSets = async (req, res, next) => {
     const userId = req.userData.id;
-
     try {
         const findedSets = await Set.find({ creator: userId });
         res.send(findedSets)
-    } catch {
-        res.status(400).send({ message: messages.global.invalidData })
+    } catch(err) {
+        next(err)
     }
 }
 
@@ -20,11 +18,19 @@ exports.getSet = async (req, res, next) => {
     try {
         const findedSet = await Set.findOne({ _id: setId, creator: userId });
         if(!findedSet) {
-            throw new Error;
+            const err = new Error(messages.global.invalidData);
+            err.statusCode = 400;
+            throw err;
         }
         res.send(findedSet);
-    } catch {
-        res.status(400).send({ message: messages.global.invalidData })
+    } catch(err) {
+        const mongoError = new MongoError(err);
+        if(mongoError.isValidationError()) {
+            const message = mongoError.getMessage();
+            err.statusCode = 400
+            err.message = message;
+        }
+        next(err)
     }
 }
 
@@ -35,8 +41,14 @@ exports.deleteSet = async (req, res, next) => {
     try {
         await Set.deleteOne({ _id: setId, creator: userId })
         res.send({})
-    } catch {
-        res.status(400).send({ message: messages.global.invalidData })
+    } catch(err) {
+        const mongoError = new MongoError(err);
+        if(mongoError.isValidationError()) {
+            const message = mongoError.getMessage();
+            err.statusCode = 400
+            err.message = message;
+        }
+        next(err)
     }
 }
 
@@ -55,10 +67,14 @@ exports.updateSet = async (req, res, next) => {
         const updateData = await Set.updateOne({ _id: setId, creator: userId }, { $set: newSet }, { runValidators: true });
         res.send({ ...newSet, _id: setId });
     }
-    catch (error) {
-        const mongoError = new MongoError(error);
-        const message = mongoError.getMessage();
-        res.status(400).send({ message: message || messages.global.invalidData })
+    catch (err) {
+        const mongoError = new MongoError(err);
+        if(mongoError.isValidationError()) {
+            const message = mongoError.getMessage();
+            err.statusCode = 400;
+            err.message = message;
+        }
+        next(err)
     }
 }
 
@@ -70,14 +86,18 @@ exports.addSet = async (req, res, next) => {
         stats: req.body.stats,
         creator: userId
     };
-    
+
     try {
         const newSet = new Set(set);
         const createdSet = await newSet.save();
         res.status(201).send(createdSet);
-    } catch (error) {
-        const mongoError = new MongoError(error);
-        const message = mongoError.getMessage();
-        res.status(400).send({ message: message || messages.global.invalidData });
+    } catch (err) {
+        const mongoError = new MongoError(err);
+        if(mongoError.isValidationError()) {
+            const message = mongoError.getMessage();
+            err.statusCode = 400
+            err.message = message;
+        }
+        next(err)
     }
 }

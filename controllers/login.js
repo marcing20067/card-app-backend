@@ -14,26 +14,30 @@ exports.login = async (req, res, next) => {
     try {
         const findedUser = await User.findOne({ email: userData.email, username: userData.username, isActivated: true });
         if (!findedUser) {
-            throw new Error;
+            const err = new Error(messages.user.invalidData);
+            err.statusCode = 400;
+            throw err;
         }
 
         const isPasswordValid = await bcrypt.compare(userData.password, findedUser.password);
-        if(!isPasswordValid) {
-            throw new Error;
+        if (!isPasswordValid) {
+            const err = new Error(messages.user.invalidData);
+            err.statusCode = 400;
+            throw err;
         }
 
         const userDataPayload = {
             id: findedUser._id,
             isActivated: findedUser
         }
-        
+
         const tokenData = new JwtToken(userDataPayload);
         tokenData.setRefreshTokenCookies(res);
         const accessTokenData = tokenData.getAccessTokenData();
 
         res.send(accessTokenData);
-    } catch {
-        return res.status(400).send({ message: messages.user.invalidData });
+    } catch(err) {
+        next(err);
     }
 }
 

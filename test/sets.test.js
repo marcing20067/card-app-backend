@@ -10,7 +10,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-    await User.findByIdAndDelete(user._id)
+    await User.deleteOne({ _id: user._id })
 })
 
 afterAll(done => {
@@ -70,7 +70,7 @@ describe('/sets/:setId GET', () => {
         })
 
         afterAll(async () => {
-            await Set.findByIdAndDelete(setId);
+            await Set.deleteOne({ _id: setId });
         })
 
         it('type of response should contain json', () => {
@@ -142,7 +142,7 @@ describe('/sets/:setId PUT', () => {
         })
 
         afterAll(async () => {
-            await Set.findByIdAndDelete(setId);
+            await Set.deleteOne({ _id: setId });
         })
 
         it('type of response should contain json', () => {
@@ -207,7 +207,7 @@ describe('/sets/:setId PUT', () => {
             })
 
             afterAll(async () => {
-                await Set.findByIdAndDelete(setId);
+                await Set.deleteOne({ _id: setId });
             })
 
             it('type of response should contain json', () => {
@@ -238,7 +238,7 @@ describe('/sets/:setId PUT', () => {
             })
 
             afterAll(async () => {
-                await Set.findByIdAndDelete(setId);
+                await Set.deleteOne({ _id: setId });
             })
 
             it('type of response should contain json', () => {
@@ -269,7 +269,7 @@ describe('/sets/:setId PUT', () => {
             })
 
             afterAll(async () => {
-                await Set.findByIdAndDelete(setId);
+                await Set.deleteOne({ _id: setId });
             })
 
             it('type of response should contain json', () => {
@@ -300,7 +300,7 @@ describe('/sets/:setId PUT', () => {
             })
 
             afterAll(async () => {
-                await Set.findByIdAndDelete(setId);
+                await Set.deleteOne({ _id: setId });
             })
 
             it('type of response should contain json', () => {
@@ -344,7 +344,7 @@ describe('/sets/:setId DELETE', () => {
         })
 
         afterAll(async () => {
-            await Set.findByIdAndDelete(setId);
+            await Set.deleteOne({ _id: setId });
         })
 
         it('type of response should contain json', () => {

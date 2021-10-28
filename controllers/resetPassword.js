@@ -8,15 +8,17 @@ exports.resetPassword = async (req, res, next) => {
     try {
         const findedUser = await User.findOne({ username: username });
         if (!findedUser) {
-            throw new Error;
+            const err = new Error(messages.user.invalidData)
+            err.statusCode = 400;
+            throw err;
         }
 
         const newOneTimeToken = new OneTimeToken({ creator: findedUser._id });
         newOneTimeToken.sendEmailWithToken('resetPassword');
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
     }
-    catch (error) {
-        res.status(400).send({ message: messages.user.invalidData })
+    catch (err) {
+        next(err);
     }
 }
 
@@ -27,24 +29,30 @@ exports.resetPasswordWithToken = async (req, res, next) => {
     try {
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetPassword.token': resetPasswordToken });
         if (!findedOneTimeToken) {
-            throw new Error;
+            const err = new Error(messages.global.invalidData)
+            err.statusCode = 400;
+            throw err;
         }
 
         const findedUser = await User.findOne({ _id: findedOneTimeToken.creator, password: currentPassword });
         if (!findedUser) {
-            throw new Error;
+            const err = new Error(messages.global.invalidData)
+            err.statusCode = 400;
+            throw err;
         }
 
         await updatePasswordForUserById(findedOneTimeToken.creator, newPassword);
-        res.send({ message: 'Password has been changed successfully.' })
+        res.send({ message: messages.user.passwordWasChanged })
     } catch (error) {
-        res.status(400).send({ message: error.message || messages.global.invalidData });
+        next(error);
     }
 }
 
 const updatePasswordForUserById = async (userId, newPassword) => {
     const responseData = await User.updateOne({ _id: userId }, { $set: { password: newPassword } });
     if (responseData.nModified === 0) {
-        throw new Error('The password is the same as the previous one.')
+        const err = new Error(messages.user.samePassword)
+        err.statusCode = 400;
+        throw err;
     }
 }

@@ -6,6 +6,7 @@ const routes = require('./routes');
 const cors = require('cors');
 const connectDB = require('./db');
 const app = express();
+const error = require('./middlewares/error');
 
 connectDB()
 app.use(logger('dev'));
@@ -20,5 +21,7 @@ app.use(cors({
 }))
 
 app.use(routes)
+
+app.use(error)
 
 module.exports = app;

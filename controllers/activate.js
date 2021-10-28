@@ -2,12 +2,14 @@ const User = require('../models/user');
 const OneTimeToken = require('../models/oneTimeToken');
 const messages = require('../messages/messages');
 
-exports.activate = async (req, res) => {
+exports.activate = async (req, res, next) => {
     const { activationToken } = req.params;
     try {
         const findedOneTimeToken = await OneTimeToken.findOne({ 'activation.token': activationToken });
         if(!findedOneTimeToken) {
-            throw new Error;
+            const err = new Error(messages.oneTimeToken.invalidData);
+            err.statusCode = 400;
+            throw err;
         }
 
         const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation');
@@ -21,8 +23,8 @@ exports.activate = async (req, res) => {
             await activateUserById(findedOneTimeToken.creator);
             res.send({ message: messages.oneTimeToken.tokenHasBeenUsedSuccessfully });
         }
-    } catch (error) {
-        res.status(400).send({ message: messages.oneTimeToken.invalidData })
+    } catch (err) {
+        next(err)
     }
 }
 
@@ -32,7 +34,7 @@ const sendEmailWithMessage = (oneTimeToken) => {
 }
 
 const activateUserById = async (userId) => {
-    await User.findByIdAndUpdate(userId, {
+    await User.updateOne({ _id: userId }, {
         $set: {
             isActivated: true,
         }

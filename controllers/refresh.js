@@ -6,12 +6,14 @@ exports.refresh = (req, res, next) => {
     try {
         const userData = JwtToken.verifyRefreshToken(refreshToken);
         if(!userData) {
-            throw new Error
+            const err = new Error(messages.jwtToken.invalidRefreshToken);
+            err.statusCode = 400;
+            throw err;
         }
         const tokenData = new JwtToken(userData);
         const accessTokenData = tokenData.getAccessTokenData(tokenData);
-        res.status(201).send({ ...accessTokenData })
-    } catch (error) {
-        res.status(400).send({ message: messages.jwtToken.invalidRefreshToken })
+        res.status(201).send(accessTokenData)
+    } catch (err) {
+        throw err;
     }
 }

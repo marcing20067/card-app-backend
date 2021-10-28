@@ -25,12 +25,18 @@ exports.signup = async (req, res, next) => {
 
         res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
         createdOneTimeToken.sendEmailWithToken('activation');
-    } catch (error) { 
-        const mongoError = new MongoError(error)
-        const message = mongoError.getMessage(error);
-        if (message && message.includes('taken')) {
-            return res.status(409).send({ message: message })
+    } catch (err) {
+        const mongoError = new MongoError(err)
+        const message = mongoError.getMessage();
+
+        if (mongoError.isValidationError()) {
+            err.statusCode = 400;
+            err.message = message || messages.global.invalidData;
         }
-        res.status(400).send({ message: message || messages.global.invalidData })
+        if (mongoError.isDuplicateError()) {
+            err.statusCode = 409;
+            err.message = message || messages.global.invalidData;
+        }
+        next(err);
     }
 }

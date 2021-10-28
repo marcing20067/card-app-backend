@@ -27,7 +27,7 @@ describe('/signup POST', () => {
 
         afterAll(async () => {
             const findedUser = await User.findOne({ username: newUser.username });
-            await User.findByIdAndDelete(findedUser._id);
+            await User.deleteOne({ _id: findedUser._id });
             await OneTimeToken.deleteOne({ creator: findedUser._id });
         })
 
@@ -245,7 +245,7 @@ describe('/signup POST', () => {
             })
 
             afterAll(async () => {
-                await User.findByIdAndRemove(user._id)
+                await User.deleteOne({ _id: user._id })
             })
 
             it('type of response should contain json', () => {

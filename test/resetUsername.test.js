@@ -35,7 +35,7 @@ describe('/resetUsername POST', () => {
         })
 
         afterAll(async () => {
-            await User.findByIdAndDelete(user._id);
+            await User.deleteOne({ _id: user._id });
             await OneTimeToken.deleteOne({ creator: user._id })
         })
 
@@ -87,7 +87,7 @@ describe('/resetUsername POST', () => {
             })
 
             afterAll(async () => {
-                await User.findByIdAndDelete(user._id);
+                await User.deleteOne({ _id: user._id});
                 await OneTimeToken.deleteOne({ creator: user._id })
             })
 
@@ -143,7 +143,7 @@ describe('/resetUsername/:oneTimeToken POST', () => {
         })
 
         afterAll(async () => {
-            await User.findByIdAndDelete(user._id);
+            await User.deleteOne({ _id: user._id});
             await OneTimeToken.deleteOne({ creator: user._id })
         })
 
@@ -183,7 +183,7 @@ describe('/resetUsername/:oneTimeToken POST', () => {
         })
 
         afterAll(async () => {
-            await User.findByIdAndDelete(user._id);
+            await User.deleteOne({ _id: user._id});
             await OneTimeToken.deleteOne({ creator: user._id })
         })
 
