@@ -5,14 +5,13 @@ const bcrypt = require('bcryptjs');
 
 exports.login = async (req, res, next) => {
     const userData = {
-        email: req.body.email,
         username: req.body.username,
         password: req.body.password,
         isActivated: true
     }
 
     try {
-        const findedUser = await User.findOne({ email: userData.email, username: userData.username, isActivated: true });
+        const findedUser = await User.findOne({ username: userData.username, isActivated: true });
         if (!findedUser) {
             const err = new Error(messages.user.invalidData);
             err.statusCode = 400;
