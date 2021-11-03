@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const checkTokenAndSetUserData = require('../middlewares/token');
+const checkTokenAndSetUserData = require('../middlewares/is-auth');
 const SetsController = require('../controllers/sets');
 
 router.get('/', checkTokenAndSetUserData, SetsController.getSets);

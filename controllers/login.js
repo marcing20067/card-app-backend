@@ -1,7 +1,8 @@
 const User = require('../models/user');
 const messages = require('../messages/messages');
-const JwtToken = require('../util/token');
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const config = require('../config/config');
 
 exports.login = async (req, res, next) => {
     const userData = {
@@ -25,16 +26,22 @@ exports.login = async (req, res, next) => {
             throw err;
         }
 
-        const userDataPayload = {
+        const payload = {
             id: findedUser._id,
-            isActivated: findedUser
         }
 
-        const tokenData = new JwtToken(userDataPayload);
-        tokenData.setRefreshTokenCookies(res);
-        const accessTokenData = tokenData.getAccessTokenData();
+        const accessToken = jwt.sign(payload, config.ACCESS_TOKEN);
+        const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN);
 
-        res.send(accessTokenData);
+        res.cookie('refreshToken', refreshToken, {
+            maxAge: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS,
+            httpOnly: true
+        })
+
+        res.send({
+            accessToken: accessToken,
+            accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+        });
     } catch(err) {
         next(err);
     }
