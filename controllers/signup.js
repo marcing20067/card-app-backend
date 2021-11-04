@@ -19,10 +19,8 @@ exports.signup = async (req, res, next) => {
         await newUser.validate();
         newUser.password = await bcrypt.hash(newUser.password, config.HASHED_PASSWORD_LENGTH);
         const createdUser = await newUser.save({ validateBeforeSave: false });
-
         const newOneTimeToken = new OneTimeToken({ creator: createdUser._id });
         const createdOneTimeToken = await newOneTimeToken.save();
-
         res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
         createdOneTimeToken.sendEmailWithToken('activation');
     } catch (err) {
