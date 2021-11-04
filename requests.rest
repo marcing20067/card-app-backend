@@ -1,11 +1,11 @@
 ###
-POST http://localhost:3000/login
+POST http://localhost:3000/signup
 Content-Type: application/json
 
 {
-    "email": "tedascik@koxuwa.com",
-    "username": "daddsas",
-    "password": "siema1234"
+    "email": "test@test.pl",
+    "username": "test",
+    "password": "testtest123"
 }
 ###
 GET http://localhost:3000/activate/ad728699705dab

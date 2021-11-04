@@ -83,10 +83,12 @@ const makeHttpRequest = async (app, options) => {
     const lowercaseMethod = method.toLowerCase();
     if (isIncludeToken) {
         const findedUser = await User.findOne({ username: validUser.username })
+        jsonwebtoken.sign.mockReturnValue('dsaojdasodsadas');
         jsonwebtoken.verify.mockReturnValue(customJwtVerifyReturn || findedUser);
     }
     const response = await request(app, options, lowercaseMethod);
     if (isIncludeToken) {
+        jsonwebtoken.sign.mockRestore();
         jsonwebtoken.verify.mockRestore();
     }
     return response;

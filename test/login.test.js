@@ -46,9 +46,14 @@ describe('/login POST', () => {
             expect(response.status).toBe(200);
         })
 
-        it('response body should contain accessToken and accessTokenExpiresIn', () => {
-            expect(response.body).toHaveProperty('accessToken');
-            expect(response.body).toHaveProperty('accessTokenExpiresIn');
+        it('response x-csrf header should contain token', () => {
+            const csrfToken = response.headers['x-csrf'];
+            expect(csrfToken).toBeDefined();
+        })
+
+        it('message should be correct', () => {
+            const message = response.body.message;
+            expect(message).toBe('Login successfully.')
         })
 
         it('cookies should contain refreshToken', () => {

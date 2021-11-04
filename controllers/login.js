@@ -3,6 +3,7 @@ const messages = require('../messages/messages');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
+const csrfToken = require('../middlewares/csrf');
 
 exports.login = async (req, res, next) => {
     const userData = {
@@ -30,7 +31,6 @@ exports.login = async (req, res, next) => {
             id: findedUser._id,
         }
 
-        const accessToken = jwt.sign(payload, config.ACCESS_TOKEN);
         const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN);
 
         res.cookie('refreshToken', refreshToken, {
@@ -38,12 +38,12 @@ exports.login = async (req, res, next) => {
             httpOnly: true
         })
 
+        csrfToken({ userData: payload }, res)
         res.send({
-            accessToken: accessToken,
-            accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
+            message: 'Login successfully.'
         });
-    } catch(err) {
-        next(err);
+    } catch (err) {
+        next(err)
     }
 }
 

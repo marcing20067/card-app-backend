@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-
-const checkTokenAndSetUserData = require('../middlewares/is-auth');
+const csrfToken = require('../middlewares/csrf');
+const isAuth = require('../middlewares/is-auth');
 const SetsController = require('../controllers/sets');
 
-router.get('/', checkTokenAndSetUserData, SetsController.getSets);
-router.get('/:setId', checkTokenAndSetUserData, SetsController.getSet);
-router.delete('/:setId', checkTokenAndSetUserData, SetsController.deleteSet);
-router.put('/:setId', checkTokenAndSetUserData, SetsController.updateSet)
-router.post('', checkTokenAndSetUserData, SetsController.addSet)
+router.get('/', isAuth, csrfToken, SetsController.getSets);
+router.get('/:setId', isAuth, csrfToken, SetsController.getSet);
+router.delete('/:setId', isAuth, csrfToken, SetsController.deleteSet);
+router.put('/:setId', isAuth, csrfToken, SetsController.updateSet)
+router.post('', isAuth, csrfToken, SetsController.addSet)
 
 module.exports = router;
