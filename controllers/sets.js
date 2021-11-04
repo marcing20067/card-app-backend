@@ -37,7 +37,6 @@ exports.getSet = async (req, res, next) => {
 exports.deleteSet = async (req, res, next) => {
     const userId = req.userData.id;
     const setId = req.params.setId;
-
     try {
         await Set.deleteOne({ _id: setId, creator: userId })
         res.send({})

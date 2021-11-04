@@ -4,7 +4,6 @@ const messages = require('../messages/messages');
 const OneTimeToken = require('../models/oneTimeToken');
 const bcrypt = require('bcryptjs');
 const config = require('../config/config');
-const email = require('../util/email');
 
 exports.signup = async (req, res, next) => {
     const userData = {
@@ -26,7 +25,6 @@ exports.signup = async (req, res, next) => {
     } catch (err) {
         const mongoError = new MongoError(err)
         const message = mongoError.getMessage();
-
         if (mongoError.isValidationError()) {
             err.statusCode = 400;
             err.message = message || messages.global.invalidData;

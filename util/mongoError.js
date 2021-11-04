@@ -12,22 +12,26 @@ module.exports = class MongoError {
     }
 
     getMessage() {
-        if (this.isDuplicateError()) {
-            const duplicatedProperty = Object.keys(this.error.keyValue)[0];
-            const formattedProperty = this.capitalizeFirstLetter(duplicatedProperty);
-            return `${formattedProperty} is already taken.`
+        if(this.isObjectIdError()) {
+            return messages.global.invalidData;
         }
 
-        if (this.isValidationError()) {
-            if (this.error.path) {
-                return messages.global.invalidData;
-            }
+        let wrongProperty, originalMessage;
+        const isValidationError = this.isValidationError();
+        const isDuplicateError = this.isDuplicateError();
+        if(isValidationError || isDuplicateError) {
+            wrongProperty = this.getWrongProperty()
+            originalMessage = this.getOriginalErrorMessage();
+        }
 
-            const wrongProperty = this.getWrongProperty()
+        if (isDuplicateError) {
+            return `${wrongProperty} is already taken.`
+        }
+
+        if (isValidationError) {
             if (!wrongProperty) {
                 return;
             }
-            const originalMessage = this.getOriginalErrorMessage();
             if (originalMessage.includes('required')) {
                 const errorMessage = `${wrongProperty} is required.`;
                 return errorMessage;
@@ -53,11 +57,19 @@ module.exports = class MongoError {
     }
 
     isDuplicateError() {
-        return this.error.code === 11000;
+        if(this.error.errors) {
+            const message = this.getOriginalErrorMessage();
+            return message.includes('already taken');
+        }
+        return false;
+    }
+
+    isObjectIdError() {
+        return this.error.kind === 'ObjectId';
     }
 
     isValidationError() {
-        return !!this.error.errors || !!this.error.path;
+        return !!this.error.errors || this.isObjectIdError();
     }
 
     capitalizeFirstLetter(string) {
