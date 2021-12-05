@@ -1,10 +1,9 @@
-const app = require('../app');
+const app = require('../../app');
 const mongoose = require('mongoose');
-const { makeHttpRequest, createValidUser,  validUser } = require('./testApi');
-
+const { makeHttpRequest, createValidUser, validUser } = require('../testApi');
+const User = require('../../models/user');
 const bcryptjs = require('bcryptjs');
 jest.mock('bcryptjs');
-const User = require('../models/user');
 
 let user;
 beforeAll(async () => {
@@ -20,15 +19,16 @@ afterAll(done => {
     done()
 })
 
-const loginRequest = (userData) => {
-    return makeHttpRequest(app, {
-        method: 'POST',
-        endpoint: '/login',
-        data: userData,
-    });
-}
+describe('/auth/login POST', () => {
+    const loginRequest = (userData) => {
+        return makeHttpRequest(app, {
+            method: 'POST',
+            endpoint: '/auth/login',
+            isIncludeToken: true,
+            data: userData,
+        });
+    }
 
-describe('/login POST', () => {
     describe('when request is correct', () => {
         let response;
         beforeAll(async () => {
@@ -46,20 +46,12 @@ describe('/login POST', () => {
             expect(response.status).toBe(200);
         })
 
-        it('response x-csrf header should contain token', () => {
-            const csrfToken = response.headers['x-csrf'];
-            expect(csrfToken).toBeDefined();
-        })
-
-        it('message should be correct', () => {
-            const message = response.body.message;
-            expect(message).toBe('Login successfully.')
-        })
-
-        it('cookies should contain refreshToken', () => {
-            const cookies = response.headers['set-cookie'][0].split('; ');
-            const refreshTokenCookie = cookies[0];
-            expect(refreshTokenCookie).toMatch('refreshToken');
+        it('response body should contain token data', () => {
+            const data = response.body;
+            expect(data).toHaveProperty('accessToken');
+            expect(data).toHaveProperty('accessTokenExpiresIn');
+            expect(data).toHaveProperty('refreshToken');
+            expect(data).toHaveProperty('refreshTokenExpiresIn');
         })
     })
 
@@ -142,13 +134,8 @@ describe('/login POST', () => {
         describe('when valid password is failed', () => {
             let response;
             beforeAll(async () => {
-                const userData = {
-                    ...validUser,
-                    password: 'password',
-                }
-
                 bcryptjs.compare.mockResolvedValue(false);
-                response = await loginRequest(userData);
+                response = await loginRequest(user._doc);
                 bcryptjs.compare.mockRestore();
             })
 

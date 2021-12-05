@@ -21,7 +21,7 @@ const SetSchema = new Schema({
         }, 
         required: true
     },
-    creator: { type: String, required: true }
+    creator: { type: Schema.Types.ObjectId, required: true }
 }, { versionKey: false })
 
 module.exports = mongoose.model('Set', SetSchema);

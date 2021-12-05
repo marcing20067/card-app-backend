@@ -1,4 +1,6 @@
+const messages = require('../messages/messages')
+
 module.exports = (error, req, res, next) => {
-    const { statusCode, message, data } = error;
-    res.status(statusCode || 500).send(message ? { message } : { ...data });
+    const { statusCode, errorMessage } = error;
+    res.status(statusCode || 500).send({ message: errorMessage || messages.global.invalidData});
 }

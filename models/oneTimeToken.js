@@ -49,7 +49,7 @@ const OneTimeTokenSchema = new Schema({
         default: generateTokenData,
         required: true
     },
-    creator: { type: String, required: true, unique: true }
+    creator: { type: Schema.Types.ObjectId, required: true, unique: true }
 }, { versionKey: false })
 
 OneTimeTokenSchema.methods.createUrl = function (tokenType) {

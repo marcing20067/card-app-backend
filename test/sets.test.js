@@ -196,7 +196,9 @@ describe('/sets/:setId PUT', () => {
         describe('when new set is undefined', () => {
             let setId;
             beforeAll(async () => {
-                const set = await createValidSet();
+                const set = await createValidSet({
+                    creator: user._id
+                });
                 setId = set._id;
             })
 

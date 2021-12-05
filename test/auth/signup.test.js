@@ -1,8 +1,17 @@
-const { makeHttpRequest, newUser, createValidUser } = require('./testApi');
-const app = require('../app');
+const app = require('../../app');
 const mongoose = require('mongoose');
-const User = require('../models/user');
-const OneTimeToken = require('../models/OneTimeToken');
+const { makeHttpRequest, createValidUser, newUser } = require('../testApi');
+const User = require('../../models/user');
+const OneTimeToken = require('../../models/oneTimeToken');
+
+let user;
+beforeAll(async () => {
+    user = await createValidUser();
+})
+
+afterAll(async () => {
+    await User.deleteOne({ _id: user._id });
+})
 
 afterAll(done => {
     mongoose.connection.close()
@@ -15,7 +24,7 @@ describe('/signup POST', () => {
             {
                 method: 'POST',
                 data: userData,
-                endpoint: '/signup'
+                endpoint: '/auth/signup'
             })
     }
 

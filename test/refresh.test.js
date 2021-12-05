@@ -20,11 +20,11 @@ afterAll(done => {
     done()
 })
 
-
 describe('/refresh GET', () => {
     const refreshRequest = (extraOptions) => {
         return makeHttpRequest(app, {
-            method: 'GET',
+            method: 'POST',
+            data: {},
             endpoint: '/refresh',
             ...extraOptions
         });
@@ -35,36 +35,31 @@ describe('/refresh GET', () => {
         beforeAll(async () => {
             jsonwebtoken.verify.mockReturnValue(user);
             jsonwebtoken.sign.mockReturnValue('token')
-            response = await refreshRequest();
+            response = await refreshRequest({
+                data: { refreshToken: 'dummy data' }
+            });
             jest.restoreAllMocks()
-        })
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
         })
 
         it('response status should be 201', () => {
             expect(response.statusCode).toBe(201);
         })
 
-        it('response body should contain access accessToken and accessTokenExpiresIn', () => {
-            expect(response.body).toHaveProperty('accessToken')
-            expect(response.body).toHaveProperty('accessTokenExpiresIn')
+        it('response body should contain tokenData', () => {
+            const data = response.body;
+            expect(data).toHaveProperty('accessTokenExpiresIn');
+            expect(data).toHaveProperty('refreshTokenExpiresIn');
+            expect(data).toHaveProperty('refreshToken');
+            expect(data).toHaveProperty('accessToken');
         })
     })
 
     describe('when request is invalid', () => {
-        describe('when refresh token doesn\'t exist in cookies', () => {
+        describe('when refresh token doesn\'t exist', () => {
             beforeAll(async () => {
                 response = await refreshRequest({
                     isIncludeToken: true
                 });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
             })
 
             it('response status should be 400', () => {

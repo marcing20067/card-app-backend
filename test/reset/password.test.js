@@ -1,19 +1,20 @@
-const app = require('../app');
+const app = require('../../app');
 const mongoose = require('mongoose');
-const { makeHttpRequest, createValidUser } = require('./testApi');
-const OneTimeToken = require('../models/oneTimeToken');
-const User = require('../models/user');
+const { makeHttpRequest, createValidUser } = require('../testApi');
+const OneTimeToken = require('../../models/oneTimeToken');
+const User = require('../../models/user');
 
 afterAll(done => {
     mongoose.connection.close()
     done();
 })
 
+
 describe('/resetPassword POST', () => {
     const resetPasswordRequest = (username, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'POST',
-            endpoint: `/resetPassword`,
+            endpoint: `/reset/password`,
             data: {
                 username: username
             },
@@ -112,7 +113,7 @@ describe('/resetPassword/:oneTimeToken POST', () => {
     const resetPasswordWithTokenRequest = (resetPasswordToken, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'POST',
-            endpoint: `/resetPassword/${resetPasswordToken}`,
+            endpoint: `/reset/password/${resetPasswordToken}`,
             data: {},
             ...extraOptions
         });

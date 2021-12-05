@@ -1,5 +1,5 @@
 ###
-POST http://localhost:3000/signup
+POST http://localhost:3000/login
 Content-Type: application/json
 
 {
@@ -8,7 +8,8 @@ Content-Type: application/json
     "password": "testtest123"
 }
 ###
-GET http://localhost:3000/activate/ad728699705dab
+GET http://localhost:3000/sets
+x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxODQzYjM1MWI4ZDNjNDFkOGVlZWYwZSIsImlhdCI6MTYzODU1MTM2OCwiZXhwIjoxNjM4NTUzMTY4fQ.wwE2Qto2dqIgKdk5URTBiviRwL4K2WCDtQoTMBqAW0o
 ###
 POST http://localhost:3000/resetPassword
 Content-Type: application/json
@@ -17,5 +18,4 @@ Content-Type: application/json
     "username": "daddsas"
 }
 ###
-GET http://localhost:3000/refresh
-
+POST http://localhost:3000/refresh

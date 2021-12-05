@@ -3,8 +3,9 @@ const User = require('../models/user');
 const Set = require('../models/set');
 const jsonwebtoken = require('jsonwebtoken');
 jest.mock('jsonwebtoken');
+jsonwebtoken.sign.mockReturnValue('dsaojdasodsadas');
 
-const generateValidUser = () => {
+const createValidUserData = () => {
     const alphabet = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'
     let username = '';
     for (let i = 0; i < 15; i++) {
@@ -83,7 +84,6 @@ const makeHttpRequest = async (app, options) => {
     const lowercaseMethod = method.toLowerCase();
     if (isIncludeToken) {
         const findedUser = await User.findOne({ username: validUser.username })
-        jsonwebtoken.sign.mockReturnValue('dsaojdasodsadas');
         jsonwebtoken.verify.mockReturnValue(customJwtVerifyReturn || findedUser);
     }
     const response = await request(app, options, lowercaseMethod);
@@ -95,7 +95,7 @@ const makeHttpRequest = async (app, options) => {
 }
 
 const createValidUser = async () => {
-    const userData = generateValidUser();
+    const userData = createValidUserData();
     const newUser = new User(userData);
     const createdUser = await newUser.save();
     return createdUser;
@@ -106,6 +106,7 @@ module.exports = {
     validUser,
     validSet,
     makeHttpRequest,
+    createValidUserData,
     createValidUser,
     createValidSet
 }

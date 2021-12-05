@@ -1,10 +1,12 @@
 const Set = require('../models/set');
-const messages = require('../messages/messages');
 const MongoError = require('../util/mongoError');
+const throwError = require('../util/throwError');
+
 exports.getSets = async (req, res, next) => {
     const userId = req.userData.id;
+    const fields = req.query.fields;
     try {
-        const findedSets = await Set.find({ creator: userId });
+        const findedSets = await Set.find({ creator: userId }).select(fields);
         res.send(findedSets)
     } catch(err) {
         next(err)
@@ -18,18 +20,16 @@ exports.getSet = async (req, res, next) => {
     try {
         const findedSet = await Set.findOne({ _id: setId, creator: userId });
         if(!findedSet) {
-            const err = new Error(messages.global.invalidData);
-            err.statusCode = 400;
-            throw err;
+            throwError()
         }
         res.send(findedSet);
     } catch(err) {
         const mongoError = new MongoError(err);
         if(mongoError.isValidationError()) {
-            const message = mongoError.getMessage();
             err.statusCode = 400
-            err.message = message;
+            err.errorMessage = mongoError.getMessage();
         }
+
         next(err)
     }
 }
@@ -43,9 +43,8 @@ exports.deleteSet = async (req, res, next) => {
     } catch(err) {
         const mongoError = new MongoError(err);
         if(mongoError.isValidationError()) {
-            const message = mongoError.getMessage();
             err.statusCode = 400
-            err.message = message;
+            err.errorMessage = mongoError.getMessage();
         }
         next(err)
     }
@@ -69,9 +68,8 @@ exports.updateSet = async (req, res, next) => {
     catch (err) {
         const mongoError = new MongoError(err);
         if(mongoError.isValidationError()) {
-            const message = mongoError.getMessage();
             err.statusCode = 400;
-            err.message = message;
+            err.errorMessage = mongoError.getMessage();
         }
         next(err)
     }
@@ -93,9 +91,8 @@ exports.addSet = async (req, res, next) => {
     } catch (err) {
         const mongoError = new MongoError(err);
         if(mongoError.isValidationError()) {
-            const message = mongoError.getMessage();
             err.statusCode = 400
-            err.message = message;
+            err.errorMessage = mongoError.getMessage();
         }
         next(err)
     }

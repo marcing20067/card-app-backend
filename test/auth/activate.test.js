@@ -1,23 +1,19 @@
-const app = require('../app');
+const app = require('../../app');
 const mongoose = require('mongoose');
-const { makeHttpRequest } = require('./testApi');
-const OneTimeToken = require('../models/oneTimeToken');
-const User = require('../models/user');
+const { makeHttpRequest, createValidUserData } = require('./../testApi');
+const OneTimeToken = require('../../models/oneTimeToken');
+const User = require('../../models/user');
 
 afterAll(done => {
     mongoose.connection.close()
     done();
 })
 
-describe('/activate/:token GET', () => {
+describe('/auth/activate/:token GET', () => {
     let user;
     beforeAll(async () => {
-        const unActivatedUser = new User({
-            username: 'unActivated',
-            password: 'password',
-            email: 'xd@mail.pl',
-            isActivated: false
-        });
+        const validUserData = createValidUserData();
+        const unActivatedUser = new User({ ...validUserData, isActivated: false });
         user = await unActivatedUser.save();
     })
 
@@ -28,7 +24,7 @@ describe('/activate/:token GET', () => {
     const activateRequest = (activationToken) => {
         return makeHttpRequest(app, {
             method: 'GET',
-            endpoint: `/activate/${activationToken}`,
+            endpoint: `/auth/activate/${activationToken}`,
         });
     }
 
