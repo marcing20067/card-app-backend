@@ -2,17 +2,10 @@ const mongoose = require('mongoose');;
 const { Schema } = mongoose;
 const messages = require('../messages/messages');
 
-const userValidators = [
+const usernameValidators = [
     {
         validator: value => /[a-z]/i.test(value), 
         message: messages.global.invalidData
-    },
-    {
-        validator: async (value) => {
-            const usernameCount = await mongoose.models.User.countDocuments({ username: value });
-            return usernameCount === 0;
-        },
-        message: '`Username` is already taken.'
     }
 ]
 
@@ -20,7 +13,8 @@ const User = new Schema({
     username: {
         type: String,
         required: true,
-        validate: userValidators,
+        validate: usernameValidators,
+        unique: true,
         minLength: 4
     },
     isActivated: { type: Boolean, required: true },
@@ -31,6 +25,7 @@ const User = new Schema({
             message: messages.global.invalidData
         },
         required: true,
+        unique: true,
         minLength: 4
     },
     password: { type: String, required: true, minLength: 8 }

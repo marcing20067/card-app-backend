@@ -17,7 +17,7 @@ const createValidUserData = () => {
     return {
         username: username,
         password: 'password',
-        email: 'email@mail.pl',
+        email: `a${username}@mail.pl`,
         isActivated: true
     }
 }

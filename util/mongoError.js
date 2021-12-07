@@ -1,5 +1,3 @@
-const messages = require('../messages/messages');
-
 module.exports = class MongoError {
     constructor(error) {
         this.error = error;
@@ -12,23 +10,25 @@ module.exports = class MongoError {
     }
 
     getMessage() {
-        if(this.isObjectIdError()) {
-            return messages.global.invalidData;
+        if (this.isObjectIdError()) {
+            // No custom error message;
+            return;
         }
 
-        let wrongProperty, originalMessage;
-        const isValidationError = this.isValidationError();
         const isDuplicateError = this.isDuplicateError();
-        if(isValidationError || isDuplicateError) {
-            wrongProperty = this.getWrongProperty()
-            originalMessage = this.getOriginalErrorMessage();
-        }
 
         if (isDuplicateError) {
-            return `${wrongProperty} is already taken.`
+            const wrongKey = Object.keys(this.error.keyPattern)[0];
+            return `${this.capitalizeFirstLetter(wrongKey)} is already taken.`
         }
 
+        const isValidationError = this.isValidationError();
+
         if (isValidationError) {
+
+            const wrongProperty = this.getWrongProperty()
+            const originalMessage = this.getOriginalErrorMessage();
+
             if (!wrongProperty) {
                 return;
             }
@@ -57,11 +57,7 @@ module.exports = class MongoError {
     }
 
     isDuplicateError() {
-        if(this.error.errors) {
-            const message = this.getOriginalErrorMessage();
-            return message.includes('already taken');
-        }
-        return false;
+        return this.error.code === 11000;
     }
 
     isObjectIdError() {
@@ -74,5 +70,11 @@ module.exports = class MongoError {
 
     capitalizeFirstLetter(string) {
         return string.charAt(0).toUpperCase() + string.slice(1);
+    }
+}
+
+class Property {
+    constructor(value) {
+        this.value = value;
     }
 }

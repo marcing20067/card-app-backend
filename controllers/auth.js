@@ -60,12 +60,12 @@ exports.signup = async (req, res, next) => {
         await newUser.validate();
         newUser.password = await bcrypt.hash(password, config.HASHED_PASSWORD_LENGTH);
 
-        const createdUser = await newUser.save();
+        const createdUser = await newUser.save({ validateBeforeSave: false });
         const newOneTimeToken = new OneTimeToken({ creator: createdUser._id });
         const createdOneTimeToken = await newOneTimeToken.save();
 
-        res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
         createdOneTimeToken.sendEmailWithToken('activation');
+        res.status(201).send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
     } catch (err) {
         const mongoError = new MongoError(err)
         const message = mongoError.getMessage();
@@ -96,7 +96,7 @@ exports.activate = async (req, res, next) => {
         const oneTimeTokenHasExpired = findedOneTimeToken.hasTokenExpired('activation');
         if (oneTimeTokenHasExpired) {
             const updatedOneTimeToken = await findedOneTimeToken.makeValid();
-            sendEmailWithMessage(updatedOneTimeToken)
+            updatedOneTimeToken.sendEmailWithToken('activation');
             res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated })
         }
 
@@ -111,11 +111,6 @@ exports.activate = async (req, res, next) => {
     } catch (err) {
         next(err)
     }
-}
-
-const sendEmailWithMessage = (oneTimeToken) => {
-    const url = oneTimeToken.createUrl('activation');
-    // TODO: Send email
 }
 
 exports.getStatus = async (req, res, next) => {
@@ -134,7 +129,7 @@ exports.getStatus = async (req, res, next) => {
     } catch (err) {
         const mongoError = new MongoError(err);
         const isValidationError = mongoError.isValidationError();
-        if(isValidationError) {
+        if (isValidationError) {
             err.statusCode = 400;
         }
         next(err);

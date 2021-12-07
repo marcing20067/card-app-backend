@@ -250,11 +250,11 @@ describe('/signup POST', () => {
 
             let response;
             beforeAll(async () => {
-                response = await signupRequest(user._doc);
+                response = await signupRequest({ ...user._doc, email: `custom${user._doc.email}` });
             })
 
             afterAll(async () => {
-                await User.deleteOne({ _id: user._id })
+                await User.deleteMany({ password: user._doc.password })
             })
 
             it('type of response should contain json', () => {
@@ -269,6 +269,36 @@ describe('/signup POST', () => {
             it('message should be correct', () => {
                 const message = response.body.message;
                 expect(message).toBe('Username is already taken.');
+            })
+        })
+
+        describe('when email is already taken', () => {
+            let user;
+            beforeAll(async () => {
+                user = await createValidUser();
+            })
+
+            let response;
+            beforeAll(async () => {
+                response = await signupRequest({ ...user._doc, username: 'dummyusername1' });
+            })
+
+            afterAll(async () => {
+                await User.deleteMany({ password: user.password });
+            })
+
+            it('type of response should contain json', () => {
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
+            })
+
+            it('response status should be 409', () => {
+                expect(response.status).toBe(409);
+            })
+
+            it('message should be correct', () => {
+                const message = response.body.message;
+                expect(message).toBe('Email is already taken.');
             })
         })
     })

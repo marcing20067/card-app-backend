@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 const crypto = require('crypto');
 const config = require('../config/config');
 const email = require('../util/email');
+const User = require('./user')
 
 const generateTokenData = () => {
     return {
@@ -55,7 +56,7 @@ const OneTimeTokenSchema = new Schema({
 OneTimeTokenSchema.methods.createUrl = function (tokenType) {
     const frontendUrl = config.FRONTEND_URL;
     const token = this[tokenType].token;
-    return `${frontendUrl}/${token}`;
+    return `${frontendUrl}/${tokenType}/${token}`;
 }
 
 OneTimeTokenSchema.methods.hasTokenExpired = function (tokenType) {
@@ -71,14 +72,16 @@ OneTimeTokenSchema.methods.makeValid = async function () {
     return updatedOneTimeToken;
 }
 
-OneTimeTokenSchema.methods.sendEmailWithToken = function (tokenType) {
+OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
     const url = this.createUrl(tokenType);
-    // return email.sendMail({
-    //     to: this.email,
-    //     from: 'card-app@backend.com',
-    //     subject: ``,
-    //     html: `<h1>${tokenType} now!</h1> Click this link to <a href="${url}">${tokenType}</a>`
-    // })
+    const owner = await User.findOne({ _id: this.creator });
+
+    email.sendMail({
+        to: owner.email,
+        from: 'marcing2067@wp.pl',
+        subject: `Subject`,
+        html: `<h1>${tokenType} now!</h1> Click this link to <a href="${url}">${tokenType}</a>`
+    })
 }
 
 module.exports = mongoose.model('OneTimeToken', OneTimeTokenSchema);
