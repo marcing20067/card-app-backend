@@ -4,10 +4,21 @@ const { makeHttpRequest, createValidUser } = require('../testApi');
 const OneTimeToken = require('../../models/oneTimeToken');
 const User = require('../../models/user');
 
+let user;
+beforeAll(async () => {
+    user = await createValidUser();
+})
+
+afterAll(async () => {
+    await User.deleteOne({ _id: user._id });
+    await OneTimeToken.deleteOne({ creator: user._id })
+})
+
 afterAll(done => {
     mongoose.connection.close();
     done();
 })
+
 describe('/resetUsername POST', () => {
     const resetUsernameRequest = (username, extraOptions) => {
         return makeHttpRequest(app, {
@@ -21,11 +32,6 @@ describe('/resetUsername POST', () => {
     }
 
     describe('when request is correct', () => {
-        let user;
-        beforeAll(async () => {
-            user = await createValidUser();
-        })
-
         let oneTimeToken;
         beforeAll(async () => {
             const newOneTimeToken = new OneTimeToken({
@@ -34,10 +40,6 @@ describe('/resetUsername POST', () => {
             oneTimeToken = await newOneTimeToken.save();
         })
 
-        afterAll(async () => {
-            await User.deleteOne({ _id: user._id });
-            await OneTimeToken.deleteOne({ creator: user._id })
-        })
 
         let response;
         beforeAll(async () => {
@@ -87,7 +89,7 @@ describe('/resetUsername POST', () => {
             })
 
             afterAll(async () => {
-                await User.deleteOne({ _id: user._id});
+                await User.deleteOne({ _id: user._id });
                 await OneTimeToken.deleteOne({ creator: user._id })
             })
 
@@ -143,7 +145,7 @@ describe('/resetUsername/:oneTimeToken POST', () => {
         })
 
         afterAll(async () => {
-            await User.deleteOne({ _id: user._id});
+            await User.deleteOne({ _id: user._id });
             await OneTimeToken.deleteOne({ creator: user._id })
         })
 
@@ -169,31 +171,26 @@ describe('/resetUsername/:oneTimeToken POST', () => {
 
 
     describe('when request is wrong', () => {
-        let user;
-        beforeAll(async () => {
-            user = await createValidUser();
-        })
-
-        let oneTimeToken;
-        beforeAll(async () => {
-            const newOneTimeToken = new OneTimeToken({
-                creator: user._id
-            });
-            oneTimeToken = await newOneTimeToken.save();
-        })
-
-        afterAll(async () => {
-            await User.deleteOne({ _id: user._id});
-            await OneTimeToken.deleteOne({ creator: user._id })
-        })
-
         describe('when the username is the same as the previous one', () => {
+            let newUser;
+            beforeAll(async () => {
+                newUser = await createValidUser();
+            })
+
+            let oneTimeToken;
+            beforeAll(async () => {
+                const newOneTimeToken = new OneTimeToken({
+                    creator: newUser._id
+                });
+                oneTimeToken = await newOneTimeToken.save();
+            })
+
             let response;
             beforeAll(async () => {
                 response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                     data: {
-                        currentUsername: user.username,
-                        newUsername: user.username
+                        currentUsername: newUser.username,
+                        newUsername: newUser.username
                     }
                 });
             })
@@ -218,7 +215,12 @@ describe('/resetUsername/:oneTimeToken POST', () => {
             let response;
             beforeAll(async () => {
                 const wrongToken = 'wrongToken';
-                response = await resetUsernameWithTokenRequest(wrongToken);
+                response = await resetUsernameWithTokenRequest(wrongToken, {
+                    data: {
+                        currentUsername: user.username,
+                        newUsername: user.username + 'x'
+                    }
+                });
             })
 
             it('type of response should contain json', () => {

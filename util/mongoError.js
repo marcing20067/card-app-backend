@@ -1,3 +1,4 @@
+
 module.exports = class MongoError {
     constructor(error) {
         this.error = error;

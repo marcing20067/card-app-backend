@@ -115,7 +115,6 @@ exports.activate = async (req, res, next) => {
 
 exports.getStatus = async (req, res, next) => {
     const userId = req.userData.id;
-    console.log(userId)
     try {
         const user = await User.findOne({ _id: userId });
         if (!user) {

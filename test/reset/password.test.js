@@ -217,7 +217,12 @@ describe('/resetPassword/:oneTimeToken POST', () => {
             let response;
             beforeAll(async () => {
                 const wrongToken = 'wrongToken';
-                response = await resetPasswordWithTokenRequest(wrongToken);
+                response = await resetPasswordWithTokenRequest(wrongToken, {
+                    data: {
+                        currentPassword: user.password,
+                        newPassword: user.password + 'new'
+                    }
+                });
             })
 
             it('type of response should contain json', () => {

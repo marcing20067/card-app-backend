@@ -9,8 +9,8 @@ module.exports = (req, res, next) => {
         req.userData = userData;
         next();
     } catch (error) {
-        console.log(error);
-        error.message = messages.jwtToken.invalidAccessToken;
+        error.statusCode = 401;
+        error.errorMessage = messages.jwtToken.invalidAccessToken;
         throw error;
     }
 }

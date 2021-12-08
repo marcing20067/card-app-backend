@@ -28,6 +28,12 @@ exports.resetPasswordWithToken = async (req, res, next) => {
     const { currentPassword, newPassword } = req.body;
 
     try {
+        if (currentPassword === newPassword) {
+            throwError({
+                message: messages.user.samePassword
+            })
+        }
+
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetPassword.token': token });
         if (!findedOneTimeToken) {
             throwError()
@@ -40,11 +46,6 @@ exports.resetPasswordWithToken = async (req, res, next) => {
 
         if (findedOneTimeToken && findedUser) {
             const responseData = await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { password: newPassword } });
-            if (responseData.nModified === 0) {
-                throwError({
-                    message: messages.user.samePassword,
-                })
-            }
             res.send({ message: messages.user.passwordWasChanged })
         }
     } catch (error) {
@@ -77,6 +78,12 @@ exports.resetUsernameWithToken = async (req, res, next) => {
     const { currentUsername, newUsername } = req.body;
 
     try {
+        if (currentUsername === newUsername) {
+            throwError({
+                message: 'The username is the same as the previous one.'
+            })
+        }
+
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetUsername.token': token });
         if (!findedOneTimeToken) {
             throwError({
@@ -93,11 +100,6 @@ exports.resetUsernameWithToken = async (req, res, next) => {
 
         if (findedOneTimeToken && findedUser) {
             const responseData = await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { username: newUsername } });
-            if (responseData.nModified === 0) {
-                throwError({
-                    message: 'The username is the same as the previous one.'
-                })
-            }
             res.send({ message: 'Username has been changed successfully.' })
         }
     } catch (err) {
