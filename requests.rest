@@ -1,15 +1,14 @@
 ###
-POST http://localhost:3000/login
+POST http://localhost:3000/auth/login
 Content-Type: application/json
 
 {
-    "email": "test@test.pl",
-    "username": "test",
+    "username": "mgmg",
     "password": "testtest123"
 }
 ###
 GET http://localhost:3000/sets
-x-access-token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxODQzYjM1MWI4ZDNjNDFkOGVlZWYwZSIsImlhdCI6MTYzODU1MTM2OCwiZXhwIjoxNjM4NTUzMTY4fQ.wwE2Qto2dqIgKdk5URTBiviRwL4K2WCDtQoTMBqAW0o
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYxYjBjMTI1Yjk2MDNhNDUwMDUzYWQyYyIsImlhdCI6MTYzOTA1OTUxMiwiZXhwIjoxNjM5MDYxMzEyfQ.rk74QOE6BkEW7ovOPz-q4fjaiFxx4-N27pvlV2T2aFA
 ###
 POST http://localhost:3000/resetPassword
 Content-Type: application/json

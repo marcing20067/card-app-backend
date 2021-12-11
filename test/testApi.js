@@ -5,19 +5,24 @@ const jsonwebtoken = require('jsonwebtoken');
 jest.mock('jsonwebtoken');
 jsonwebtoken.sign.mockReturnValue('dsaojdasodsadas');
 
-const createValidUserData = () => {
+const createRandomString = () => {
     const alphabet = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz'
-    let username = '';
+    let randomString = '';
     for (let i = 0; i < 15; i++) {
         const randomIndex = Math.floor(Math.random() * alphabet.length);
         const randomLetter = alphabet[randomIndex];
-        username = username + randomLetter;
+        randomString = randomString + randomLetter;
     }
+    return randomString;
+}
+
+const createValidUserData = () => {
+    const randomString = createRandomString();
 
     return {
-        username: username,
+        username: randomString,
         password: 'password',
-        email: `a${username}@mail.pl`,
+        email: `a${randomString}@mail.pl`,
         isActivated: true
     }
 }
@@ -73,6 +78,7 @@ const request = (app, options, lowercaseMethod) => {
 const createValidSet = async (customData) => {
     const newSet = new Set({
         ...validSet,
+        name: createRandomString(),
         ...customData
     });
     const createdSet = await newSet.save();

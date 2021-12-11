@@ -6,7 +6,7 @@ const User = require('../models/user');
 
 let user;
 beforeAll(async () => {
-    user = await createValidUser()
+    user = await createValidUser();
 })
 
 afterAll(async () => {
@@ -42,6 +42,69 @@ describe('/sets GET', () => {
 
         it('response status should be 200', () => {
             expect(response.status).toBe(200);
+        })
+    })
+
+    describe('pagination', () => {
+        describe('when request is correct', () => {
+            let createdSets;
+            beforeAll(async () => {
+                const sets = [{
+                    ...validSet, name: 'name one', creator: user._id
+                }, {
+                    ...validSet, name: 'name two', creator: user._id
+                }]
+
+                createdSets = await Set.insertMany(sets)
+            })
+
+            afterAll(async () => {
+                Set.deleteMany(createdSets);
+            })
+
+            let response;
+            beforeAll(async () => {
+                response = await setsRequest({
+                    endpoint: '/sets?page=2&items=1'
+                });
+            })
+
+            it('type of response should contain json', () => {
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
+            })
+
+            it('response status should be 200', () => {
+                expect(response.status).toBe(200);
+            })
+
+            it('response should contain correct sets', () => {
+                const paginationSets = response.body;
+                expect(paginationSets.length).toBe(1);
+                expect(paginationSets[0].name).toBe(createdSets[1].name)
+            })
+        })
+
+        describe('when sets on this page doesnt exists', () => {
+            let response;
+            beforeAll(async () => {
+                response = await setsRequest({
+                    endpoint: '/sets?page=30&items=1'
+                });
+            })
+
+            it('type of response should contain json', () => {
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
+            })
+
+            it('response status should be 200', () => {
+                expect(response.status).toBe(200);
+            })
+
+            it('response should be empty array', () => {
+                expect(response.body).toStrictEqual([])
+            })
         })
     })
 })
@@ -384,7 +447,7 @@ describe('/sets/:setId DELETE', () => {
     })
 })
 
-describe('/sets/:setId POST', () => {
+describe('/sets POST', () => {
     const postSetRequest = (newSet, extraOptions) => {
         return makeHttpRequest(app, {
             method: 'POST',
@@ -498,6 +561,34 @@ describe('/sets/:setId POST', () => {
             it('message should be correct', () => {
                 const message = response.body.message;
                 expect(message).toBe('Name is too short.');
+            })
+        })
+
+        describe('when sets is already taken', () => {
+            let createdSet;
+            beforeAll(async () => {
+                createdSet = await createValidSet({
+                    creator: user._id
+                })
+            })
+            
+            let response;
+            beforeAll(async () => {
+                response = await postSetRequest({ ...createdSet._doc });
+            })
+
+            it('type of response should contain json', () => {
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
+            })
+
+            it('response status should be 400', () => {
+                expect(response.status).toBe(409);
+            })
+
+            it('message should be correct', () => {
+                const message = response.body.message;
+                expect(message).toBe('Name is already taken.');
             })
         })
     })

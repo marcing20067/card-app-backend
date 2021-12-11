@@ -7,7 +7,7 @@ const SetSchema = new Schema({
         type: [{
             concept: { type: String, required: true },
             definition: { type: String, required: true },
-            group: { type: Number, required: true, min: 1, max: 5 }
+            group: { type: Number, required: true, min: 1, max: 6 }
         }],
         required: true,
     },

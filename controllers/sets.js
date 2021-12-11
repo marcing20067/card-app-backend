@@ -3,12 +3,18 @@ const MongoError = require('../util/mongoError');
 const throwError = require('../util/throwError');
 
 exports.getSets = async (req, res, next) => {
+    const page = +req.query.page || 1;
+    const itemsPerPage = +req.query.items || 5;
     const userId = req.userData.id;
-    const fields = req.query.fields;
+    const fields = req.query.fields || '';
     try {
-        const findedSets = await Set.find({ creator: userId }).select(fields);
+        const findedSets = await Set
+            .find({ creator: userId })
+            .skip(itemsPerPage * page - 1)
+            .limit(itemsPerPage)
+            .select(fields);
         res.send(findedSets)
-    } catch(err) {
+    } catch (err) {
         next(err)
     }
 }
@@ -19,13 +25,13 @@ exports.getSet = async (req, res, next) => {
 
     try {
         const findedSet = await Set.findOne({ _id: setId, creator: userId });
-        if(!findedSet) {
+        if (!findedSet) {
             throwError()
         }
         res.send(findedSet);
-    } catch(err) {
+    } catch (err) {
         const mongoError = new MongoError(err);
-        if(mongoError.isValidationError()) {
+        if (mongoError.isValidationError()) {
             err.statusCode = 400
             err.errorMessage = mongoError.getMessage();
         }
@@ -40,9 +46,9 @@ exports.deleteSet = async (req, res, next) => {
     try {
         await Set.deleteOne({ _id: setId, creator: userId })
         res.send({})
-    } catch(err) {
+    } catch (err) {
         const mongoError = new MongoError(err);
-        if(mongoError.isValidationError()) {
+        if (mongoError.isValidationError()) {
             err.statusCode = 400
             err.errorMessage = mongoError.getMessage();
         }
@@ -67,7 +73,7 @@ exports.updateSet = async (req, res, next) => {
     }
     catch (err) {
         const mongoError = new MongoError(err);
-        if(mongoError.isValidationError()) {
+        if (mongoError.isValidationError()) {
             err.statusCode = 400;
             err.errorMessage = mongoError.getMessage();
         }
@@ -85,12 +91,25 @@ exports.addSet = async (req, res, next) => {
     };
 
     try {
+        if (set.name && set.creator) {
+            const setWithTakenName = await Set.findOne({ name: set.name, creator: set.creator });
+            if (setWithTakenName) {
+                throw new Error('Name taken');
+            }
+        }
+
         const newSet = new Set(set);
         const createdSet = await newSet.save();
         res.status(201).send(createdSet);
     } catch (err) {
+        if (err.message === 'Name taken') {
+            err.statusCode = 409;
+            err.errorMessage = 'Name is already taken.'
+            return next(err);
+        }
+
         const mongoError = new MongoError(err);
-        if(mongoError.isValidationError()) {
+        if (mongoError.isValidationError()) {
             err.statusCode = 400
             err.errorMessage = mongoError.getMessage();
         }
