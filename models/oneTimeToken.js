@@ -76,12 +76,12 @@ OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
     const url = this.createUrl(tokenType);
     const owner = await User.findOne({ _id: this.creator });
 
-    email.sendMail({
-        to: owner.email,
-        from: 'marcing2067@wp.pl',
-        subject: `Subject`,
-        html: `<h1>${tokenType} now!</h1> Click this link to <a href="${url}">${tokenType}</a>`
-    })
+    // email.sendMail({
+    //     to: owner.email,`
+    //     from: 'marcing2067@wp.pl',
+    //     subject: `Subject`,
+    //     html: `<h1>${tokenType} now!</h1> Click this link to <a href="${url}">${tokenType}</a>`
+    // })
 }
 
 module.exports = mongoose.model('OneTimeToken', OneTimeTokenSchema);

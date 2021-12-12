@@ -10,7 +10,7 @@ exports.getSets = async (req, res, next) => {
     try {
         const findedSets = await Set
             .find({ creator: userId })
-            .skip(itemsPerPage * page - 1)
+            .skip(itemsPerPage * (page - 1))
             .limit(itemsPerPage)
             .select(fields);
         res.send(findedSets)

@@ -2,9 +2,10 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const SetSchema = new Schema({
-    name: { type: String, required: true, minLength: 3 },
+    name: { type: String, required: true, minLength: 3, maxLength: 12 },
     cards: {
         type: [{
+            _id: false,
             concept: { type: String, required: true },
             definition: { type: String, required: true },
             group: { type: Number, required: true, min: 1, max: 6 }
