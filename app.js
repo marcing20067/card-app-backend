@@ -1,3 +1,6 @@
+require('dotenv').config({
+    path: 'env/.env'
+});
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
@@ -7,7 +10,6 @@ const cors = require('cors');
 const connectDB = require('./db');
 const app = express();
 const error = require('./middlewares/error');
-
 connectDB()
 app.use(logger('dev'));
 app.use(express.json());

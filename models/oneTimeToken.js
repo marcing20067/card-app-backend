@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const crypto = require('crypto');
-const config = require('../config/config');
 const email = require('../util/email');
 const User = require('./user')
 
@@ -13,13 +12,13 @@ const generateTokenData = () => {
 }
 
 const generateToken = () => {
-    const tokenLength = config.ONE_TIME_TOKEN_LENGTH;
+    const tokenLength = +process.env.ONE_TIME_TOKEN_LENGTH;
     const token = crypto.randomBytes(tokenLength / 2).toString('hex');
     return token;
 }
 
 const generateEndOfValidity = () => {
-    const oneTimeTokenExpiresInWeeks = config.ONE_TIME_TOKEN_EXPIRES_IN_WEEKS;
+    const oneTimeTokenExpiresInWeeks = process.env.ONE_TIME_TOKEN_EXPIRES_IN_WEEKS;
     const now = new Date();
     const endOfValidity = new Date().setDate(now.getDate() + oneTimeTokenExpiresInWeeks * 7);
     return endOfValidity;
@@ -54,7 +53,7 @@ const OneTimeTokenSchema = new Schema({
 }, { versionKey: false })
 
 OneTimeTokenSchema.methods.createUrl = function (tokenType) {
-    const frontendUrl = config.FRONTEND_URL;
+    const frontendUrl = process.env.FRONTEND_URL;
     const token = this[tokenType].token;
     return `${frontendUrl}/${tokenType}/${token}`;
 }

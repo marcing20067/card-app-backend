@@ -3,7 +3,6 @@ const MongoError = require('../util/mongoError');
 const messages = require('../messages/messages');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const config = require('../config/config');
 const OneTimeToken = require('../models/oneTimeToken');
 const throwError = require('../util/throwError');
 
@@ -24,22 +23,21 @@ exports.login = async (req, res, next) => {
                 message: messages.user.invalidData
             })
         }
-
         const payload = {
             id: findedUser._id,
         }
-        const accessToken = jwt.sign(payload, config.ACCESS_TOKEN, {
-            expiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS
+        const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN, {
+            expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN_MILISECONDS
         });
-        const refreshToken = jwt.sign(payload, config.REFRESH_TOKEN, {
-            expiresIn: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+        const refreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN, {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
         });
 
         res.send({
             accessToken: accessToken,
             refreshToken: refreshToken,
-            accessTokenExpiresIn: config.ACCESS_TOKEN_EXPIRES_IN_SECONDS * 1000,
-            refreshTokenExpiresIn: config.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+            accessTokenExpiresIn: +process.env.ACCESS_TOKEN_EXPIRES_IN_MILISECONDS,
+            refreshTokenExpiresIn: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
         });
     } catch (err) {
         next(err)
@@ -58,7 +56,7 @@ exports.signup = async (req, res, next) => {
         });
 
         await newUser.validate();
-        newUser.password = await bcrypt.hash(password, config.HASHED_PASSWORD_LENGTH);
+        newUser.password = await bcrypt.hash(password, +process.env.HASHED_PASSWORD_LENGTH);
 
         const createdUser = await newUser.save({ validateBeforeSave: false });
         const newOneTimeToken = new OneTimeToken({ creator: createdUser._id });
@@ -77,7 +75,6 @@ exports.signup = async (req, res, next) => {
             err.statusCode = isDuplicateError ? 409 : 400;
             err.errorMessage = message || messages.global.invalidData;
         }
-
         next(err);
     }
 }

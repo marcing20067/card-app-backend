@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const SetSchema = new Schema({
-    name: { type: String, required: true, minLength: 3, maxLength: 12 },
+    name: { type: String, required: true, minLength: 3, maxLength: 25 },
     cards: {
         type: [{
             _id: false,
