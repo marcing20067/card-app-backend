@@ -41,7 +41,7 @@ const basicMjml = (href, action) => `
 module.exports = {
     html: {
         activation: (link) => {
-            const mjmlTemplate = basicMjml(link, 'zresetować hasło');
+            const mjmlTemplate = basicMjml(link, 'aktywować konto');
             return mjml2html(mjmlTemplate);
         },
         resetPassword: (link) => {
