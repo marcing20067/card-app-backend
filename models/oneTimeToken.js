@@ -3,6 +3,7 @@ const { Schema } = mongoose;
 const crypto = require('crypto');
 const email = require('../util/email');
 const User = require('./user')
+const getMailData = require('../messages/email');
 
 const generateTokenData = () => {
     return {
@@ -74,12 +75,16 @@ OneTimeTokenSchema.methods.makeValid = async function () {
 OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
     const url = this.createUrl(tokenType);
     const owner = await User.findOne({ _id: this.creator });
-
+    const html = getMailData.html[tokenType](url).html;
+    const subject = getMailData.subject[tokenType];
+    
     email.sendMail({
         to: owner.email,
         from: 'marcing2067@wp.pl',
-        subject: `Card App Backend`,
-        html: `<h1>${tokenType} teraz!</h1><a href="${url}">Kliknij ten link aby ${tokenType}!</a>`
+        subject: subject,
+        html: html
+    }).catch(err => {
+        console.log(err);
     })
 }
 

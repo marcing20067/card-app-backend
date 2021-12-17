@@ -73,9 +73,3 @@ module.exports = class MongoError {
         return string.charAt(0).toUpperCase() + string.slice(1);
     }
 }
-
-class Property {
-    constructor(value) {
-        this.value = value;
-    }
-}
