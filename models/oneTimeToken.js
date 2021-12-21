@@ -56,6 +56,10 @@ const OneTimeTokenSchema = new Schema({
 OneTimeTokenSchema.methods.createUrl = function (tokenType) {
     const frontendUrl = process.env.FRONTEND_URL;
     const token = this[tokenType].token;
+    if (tokenType.includes('Username') || tokenType.includes('Password')) {
+        const correctTokenType = tokenType.replace('U', '/u').replace('P', '/p');
+        return `${frontendUrl}/${correctTokenType}/${token}`;
+    }
     return `${frontendUrl}/${tokenType}/${token}`;
 }
 
@@ -64,10 +68,13 @@ OneTimeTokenSchema.methods.hasTokenExpired = function (tokenType) {
     return now > this[tokenType].endOfValidity;
 }
 
-OneTimeTokenSchema.methods.makeValid = async function () {
-    this.resetPassword = generateTokenData();
-    this.resetUsername = generateTokenData();
-    this.activation = generateTokenData();
+OneTimeTokenSchema.methods.makeValid = async function (tokenType) {
+    if (!tokenType) {
+        this.resetPassword = generateTokenData();
+        this.resetUsername = generateTokenData();
+        this.activation = generateTokenData();
+    }
+    this[tokenType] = generateTokenData();
     const updatedOneTimeToken = await this.save();
     return updatedOneTimeToken;
 }
@@ -77,7 +84,6 @@ OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
     const owner = await User.findOne({ _id: this.creator });
     const html = getMailData.html[tokenType](url).html;
     const subject = getMailData.subject[tokenType];
-    
     email.sendMail({
         to: owner.email,
         from: 'marcing2067@wp.pl',

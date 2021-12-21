@@ -2,6 +2,7 @@ const User = require('../models/user');
 const OneTimeToken = require('../models/oneTimeToken');
 const messages = require('../messages/messages');
 const throwError = require('../util/throwError');
+const bcrypt = require('bcryptjs');
 
 exports.resetPassword = async (req, res, next) => {
     const { username } = req.body;
@@ -14,9 +15,10 @@ exports.resetPassword = async (req, res, next) => {
             })
         }
 
-        const newOneTimeToken = new OneTimeToken({ creator: findedUser._id });
-        newOneTimeToken.sendEmailWithToken('resetPassword');
+        const findedOneTimeToken = await OneTimeToken.findOne({ creator: findedUser._id });
+        await findedOneTimeToken.makeValid('resetPassword');
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
+        findedOneTimeToken.sendEmailWithToken('resetPassword')
     }
     catch (err) {
         next(err);
@@ -25,29 +27,22 @@ exports.resetPassword = async (req, res, next) => {
 
 exports.resetPasswordWithToken = async (req, res, next) => {
     const { token } = req.params;
-    const { currentPassword, newPassword } = req.body;
+    const { newPassword } = req.body;
 
     try {
-        if (currentPassword === newPassword) {
-            throwError({
-                message: messages.user.samePassword
-            })
-        }
-
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetPassword.token': token });
         if (!findedOneTimeToken) {
             throwError()
         }
 
-        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator, password: currentPassword });
+        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator });
         if (!findedUser) {
             throwError()
         }
 
-        if (findedOneTimeToken && findedUser) {
-            const responseData = await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { password: newPassword } });
-            res.send({ message: messages.user.passwordWasChanged })
-        }
+        const hashedPassword = await bcrypt.hash(newPassword, +process.env.HASHED_PASSWORD_LENGTH)
+        const responseData = await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { password: hashedPassword } });
+        res.send({ message: messages.user.passwordWasChanged })
     } catch (error) {
         next(error);
     }
@@ -64,26 +59,22 @@ exports.resetUsername = async (req, res, next) => {
             })
         }
 
-        const newOneTimeToken = new OneTimeToken({ creator: findedUser._id });
-        newOneTimeToken.sendEmailWithToken('resetUsername');
+        const findedOneTimeToken = await OneTimeToken.findOne({ creator: findedUser._id });
+        await findedOneTimeToken.makeValid('resetUsername');
+        findedOneTimeToken.sendEmailWithToken('resetUsername');
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
     }
     catch (err) {
+        console.log(err);
         next(err);
     }
 }
 
 exports.resetUsernameWithToken = async (req, res, next) => {
     const { token } = req.params;
-    const { currentUsername, newUsername } = req.body;
+    const { newUsername } = req.body;
 
     try {
-        if (currentUsername === newUsername) {
-            throwError({
-                message: 'The username is the same as the previous one.'
-            })
-        }
-
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetUsername.token': token });
         if (!findedOneTimeToken) {
             throwError({
@@ -91,7 +82,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
             })
         }
 
-        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator, username: currentUsername });
+        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator });
         if (!findedUser) {
             throwError({
                 message: messages.global.invalidData
@@ -103,6 +94,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
             res.send({ message: 'Username has been changed successfully.' })
         }
     } catch (err) {
+        console.log(err)
         next(err)
     }
 }

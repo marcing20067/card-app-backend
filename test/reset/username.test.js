@@ -110,10 +110,10 @@ describe('/resetUsername POST', () => {
     })
 })
 
-describe('/resetUsername/:oneTimeToken POST', () => {
+describe('/resetUsername/:oneTimeToken PUT', () => {
     const resetUsernameWithTokenRequest = (resetUsernameToken, extraOptions) => {
         return makeHttpRequest(app, {
-            method: 'POST',
+            method: 'PUT',
             endpoint: `/reset/username/${resetUsernameToken}`,
             data: {},
             ...extraOptions
@@ -138,7 +138,6 @@ describe('/resetUsername/:oneTimeToken POST', () => {
         beforeAll(async () => {
             response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                 data: {
-                    currentUsername: user.username,
                     newUsername: 'extraNewUsername123!'
                 }
             });
@@ -171,53 +170,12 @@ describe('/resetUsername/:oneTimeToken POST', () => {
 
 
     describe('when request is wrong', () => {
-        describe('when the username is the same as the previous one', () => {
-            let newUser;
-            beforeAll(async () => {
-                newUser = await createValidUser();
-            })
-
-            let oneTimeToken;
-            beforeAll(async () => {
-                const newOneTimeToken = new OneTimeToken({
-                    creator: newUser._id
-                });
-                oneTimeToken = await newOneTimeToken.save();
-            })
-
-            let response;
-            beforeAll(async () => {
-                response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
-                    data: {
-                        currentUsername: newUser.username,
-                        newUsername: newUser.username
-                    }
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('The username is the same as the previous one.');
-            })
-        })
-
         describe('when resetUsernameToken is wrong', () => {
             let response;
             beforeAll(async () => {
                 const wrongToken = 'wrongToken';
                 response = await resetUsernameWithTokenRequest(wrongToken, {
                     data: {
-                        currentUsername: user.username,
                         newUsername: user.username + 'x'
                     }
                 });
