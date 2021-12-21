@@ -4,7 +4,7 @@ const messages = require('../messages/messages');
 
 const usernameValidators = [
     {
-        validator: value => /[a-z]/i.test(value), 
+        validator: value => /^[a-z]{1,}$/i.test(value), 
         message: messages.global.invalidData
     }
 ]
