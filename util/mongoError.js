@@ -26,12 +26,11 @@ module.exports = class MongoError {
         const isValidationError = this.isValidationError();
 
         if (isValidationError) {
-
             const wrongProperty = this.getWrongProperty()
             const originalMessage = this.getOriginalErrorMessage();
-
+            
             if (!wrongProperty) {
-                return;
+                return originalMessage;
             }
             if (originalMessage.includes('required')) {
                 const errorMessage = `${wrongProperty} is required.`;
@@ -43,6 +42,7 @@ module.exports = class MongoError {
                 return errorMessage;
             }
         }
+
     }
 
     getWrongProperty() {

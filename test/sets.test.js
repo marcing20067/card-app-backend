@@ -503,6 +503,47 @@ describe('/sets POST', () => {
     })
 
     describe('when request is wrong', () => {
+        describe('when definition is duplicated', () => {
+            let response;
+            beforeAll(async () => {
+                response = await postSetRequest({
+                    ...validSet, cards: [
+                        {
+                            definition: 'dup',
+                            concept: 'dup1',
+                            group: 0
+                        },
+                        {
+                            definition: 'dup',
+                            concept: 'dup2',
+                            group: 0
+                        }, {
+                            definition: 'dup',
+                            concept: 'dup3',
+                            group: 0
+                        }, {
+                            definition: 'dup',
+                            concept: 'dup2',
+                            group: 0
+                        }]
+                });
+            })
+
+            it('type of response should contain json', () => {
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
+            })
+
+            it('response status should be 400', () => {
+                expect(response.status).toBe(400);
+            })
+
+            it('message should be correct', () => {
+                const message = response.body.message;
+                expect(message).toBe('Concept "dup2" is duplicated.');
+            })
+        })
+
         describe('when only name is required', () => {
             let response;
             beforeAll(async () => {
@@ -573,7 +614,7 @@ describe('/sets POST', () => {
                     creator: user._id
                 })
             })
-            
+
             let response;
             beforeAll(async () => {
                 response = await postSetRequest({ ...createdSet._doc });
