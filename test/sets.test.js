@@ -59,7 +59,9 @@ describe('/sets GET', () => {
             })
 
             afterAll(async () => {
-                Set.deleteMany(createdSets);
+                await Set.deleteMany({
+                    creator: user._id
+                });
             })
 
             let response;

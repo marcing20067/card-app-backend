@@ -1,6 +1,6 @@
 const app = require('../../app');
 const mongoose = require('mongoose');
-const { makeHttpRequest, createValidUser, newUser } = require('../testApi');
+const { makeHttpRequest, createValidUser, createValidUserData } = require('../testApi');
 const User = require('../../models/user');
 const OneTimeToken = require('../../models/oneTimeToken');
 
@@ -29,13 +29,14 @@ describe('/signup POST', () => {
     }
 
     describe('when request is correct', () => {
+        const userData = createValidUserData();
         let response;
         beforeAll(async () => {
-            response = await signupRequest(newUser);
+            response = await signupRequest(userData);
         })
 
         afterAll(async () => {
-            const findedUser = await User.findOne({ username: newUser.username });
+            const findedUser = await User.findOne({ username: userData.username });
             await User.deleteOne({ _id: findedUser._id });
             await OneTimeToken.deleteOne({ creator: findedUser._id });
         })
@@ -55,12 +56,12 @@ describe('/signup POST', () => {
         })
 
         it('created user should exists in db', async () => {
-            const findedUser = await User.findOne({ username: newUser.username });
+            const findedUser = await User.findOne({ username: userData.username });
             expect(findedUser).not.toBe(null);
         })
 
         it('oneTimeToken should exists in db', async () => {
-            const user = await User.findOne({ username: newUser.username });
+            const user = await User.findOne({ username: userData.username });
             const findedOneTimeToken = await OneTimeToken.findOne({ creator: user._id });
             expect(findedOneTimeToken).not.toBe(null);
         })
@@ -71,7 +72,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    ...newUser,
+                    ...createValidUserData(),
                     username: 'u',
                 }
                 response = await signupRequest(userData);
@@ -96,7 +97,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    ...newUser,
+                    ...createValidUserData(),
                     password: 'p'
                 }
                 response = await signupRequest(userData);
@@ -144,7 +145,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    ...newUser,
+                    ...createValidUserData(),
                     password: undefined,
                 };
                 response = await signupRequest(userData);
@@ -169,7 +170,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    ...newUser,
+                    ...createValidUserData(),
                     username: undefined,
                 };
                 response = await signupRequest(userData);
@@ -195,8 +196,8 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    username: newUser.username,
-                    password: newUser.password
+                    ...createValidUserData(),
+                    email: undefined
                 };
                 response = await signupRequest(userData);
             });
@@ -221,7 +222,7 @@ describe('/signup POST', () => {
             let response;
             beforeAll(async () => {
                 const userData = {
-                    ...newUser,
+                    ...createValidUserData(),
                     email: 'email'
                 };
                 response = await signupRequest(userData);
@@ -280,7 +281,7 @@ describe('/signup POST', () => {
 
             let response;
             beforeAll(async () => {
-                response = await signupRequest({ ...user._doc, username: 'dummyusername1' });
+                response = await signupRequest({ ...user._doc, username: 'dummyusername' });
             })
 
             afterAll(async () => {

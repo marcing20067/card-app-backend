@@ -65,7 +65,6 @@ exports.resetUsername = async (req, res, next) => {
         res.send({ message: messages.oneTimeToken.newTokenHasBeenCreated })
     }
     catch (err) {
-        console.log(err);
         next(err);
     }
 }
@@ -94,7 +93,6 @@ exports.resetUsernameWithToken = async (req, res, next) => {
             res.send({ message: 'Username has been changed successfully.' })
         }
     } catch (err) {
-        console.log(err)
         next(err)
     }
 }
