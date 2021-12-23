@@ -138,7 +138,7 @@ describe('/resetUsername/:oneTimeToken PUT', () => {
         beforeAll(async () => {
             response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
                 data: {
-                    newUsername: 'extraNewUsername123!'
+                    newUsername: user.username + 'random'
                 }
             });
         })
@@ -164,7 +164,12 @@ describe('/resetUsername/:oneTimeToken PUT', () => {
 
         it('user username should be changed', async () => {
             const findedUser = await User.findOne({ _id: user._id });
-            expect(findedUser.username).toBe('extraNewUsername123!');
+            expect(findedUser.username).toBe(user.username + 'random');
+        })
+
+        it('reset username token should be 0', async () => {
+            const findedOneTimeToken = await OneTimeToken.findOne({ _id: oneTimeToken._id });
+            expect(findedOneTimeToken.resetUsername.token).toBe('0');
         })
     })
 

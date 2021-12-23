@@ -30,6 +30,12 @@ exports.resetPasswordWithToken = async (req, res, next) => {
     const { newPassword } = req.body;
 
     try {
+        if(token === '0') {
+            throwError({
+                message: messages.oneTimeToken.invalidData
+            })
+        }
+        
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetPassword.token': token });
         if (!findedOneTimeToken) {
             throwError()
@@ -41,7 +47,12 @@ exports.resetPasswordWithToken = async (req, res, next) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, +process.env.HASHED_PASSWORD_LENGTH)
-        const responseData = await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { password: hashedPassword } });
+        await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { password: hashedPassword } });
+        await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, { $set: {
+            resetPassword: {
+                token: '0'
+            }
+        }})
         res.send({ message: messages.user.passwordWasChanged })
     } catch (error) {
         next(error);
@@ -74,6 +85,12 @@ exports.resetUsernameWithToken = async (req, res, next) => {
     const { newUsername } = req.body;
 
     try {
+        if(token === '0') {
+            throwError({
+                message: messages.oneTimeToken.invalidData
+            })
+        }
+
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetUsername.token': token });
         if (!findedOneTimeToken) {
             throwError({
@@ -89,7 +106,12 @@ exports.resetUsernameWithToken = async (req, res, next) => {
         }
 
         if (findedOneTimeToken && findedUser) {
-            const responseData = await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { username: newUsername } });
+            await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { username: newUsername } });
+            await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, { $set: {
+                resetUsername: {
+                    token: '0'
+                }
+            }})
             res.send({ message: 'Username has been changed successfully.' })
         }
     } catch (err) {

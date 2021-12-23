@@ -162,11 +162,15 @@ describe('/resetPassword/:oneTimeToken PUT', () => {
             expect(message).toBe('Password has been changed successfully.');
         })
 
-        // TODO: Fix this test
-        // it('user with new password should exists', async () => {
-        //     const findedUser = await User.findOne({ _id: user._id });
-        //     expect(findedUser).not.toBe(null);
-        // })
+        it('reset password token should be 0', async () => {
+            const findedOneTimeToken = await OneTimeToken.findOne({ _id: oneTimeToken._id });
+            expect(findedOneTimeToken.resetPassword.token).toBe('0');
+        })
+
+        it('user should have not same password', async () => {
+            const findedUser = await User.findOne({ _id: oneTimeToken.creator });
+            expect(findedUser.password).not.toBe(user.password);
+        })
     })
 
 
