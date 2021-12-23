@@ -68,7 +68,14 @@ describe('/auth/activate/:token GET', () => {
                 const findedUser = await User.findById(user._id);
                 expect(findedUser.isActivated).toBe(true)
             })
+
+            it('activation token and endOfValidity should be changed to 0', async () => {
+                const findedOneTimeToken = await OneTimeToken.findOne({ _id: oneTimeToken._id});
+                expect(findedOneTimeToken.activation.token).toBe('0')
+            })
         })
+
+
         describe('when the token is expired', () => {
             let oneTimeToken;
             beforeAll(async () => {
@@ -114,6 +121,39 @@ describe('/auth/activate/:token GET', () => {
     })
 
     describe('when request is wrong', () => {
+        describe('when token was used', () => {
+            let oneTimeToken;
+            beforeAll(async () => {
+                const newOneTimeToken = new OneTimeToken({
+                    activation: {
+                        token: '0',
+                        endOfValidity: 0
+                    },
+                    creator: user._id
+                })
+                oneTimeToken = await newOneTimeToken.save();
+                response = await activateRequest(oneTimeToken.activation.token);
+            })
+
+            afterAll(async () => {
+                OneTimeToken.deleteOne({ _id: oneTimeToken._id })
+            })
+
+            it('type of response should contain json', () => {
+                const contentType = response.headers['content-type'];
+                expect(/json/.test(contentType))
+            })
+
+            it('response status should be 400', () => {
+                expect(response.status).toBe(400);
+            })
+
+            it('message should be correct', () => {
+                const message = response.body.message;
+                expect(message).toBe('Token does not exist.');
+            })
+        })
+
         describe('when oneTimeToken is wrong', () => {
             beforeAll(async () => {
                 const wrongOneTimeToken = 'wrongToken';

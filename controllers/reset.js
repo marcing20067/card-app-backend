@@ -8,7 +8,7 @@ exports.resetPassword = async (req, res, next) => {
     const { username } = req.body;
 
     try {
-        const findedUser = await User.findOne({ username: username });
+        const findedUser = await User.findOne({ username: username, isActivated: true });
         if (!findedUser) {
             throwError({
                 message: messages.user.invalidData,
@@ -35,7 +35,7 @@ exports.resetPasswordWithToken = async (req, res, next) => {
             throwError()
         }
 
-        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator });
+        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator, isActivated: true });
         if (!findedUser) {
             throwError()
         }
@@ -52,7 +52,7 @@ exports.resetPasswordWithToken = async (req, res, next) => {
 exports.resetUsername = async (req, res, next) => {
     const { username } = req.body;
     try {
-        const findedUser = await User.findOne({ username });
+        const findedUser = await User.findOne({ username, isActivated: true });
         if (!findedUser) {
             throwError({
                 message: messages.user.invalidData
@@ -81,7 +81,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
             })
         }
 
-        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator });
+        const findedUser = await User.findOne({ _id: findedOneTimeToken.creator, isActivated: true });
         if (!findedUser) {
             throwError({
                 message: messages.global.invalidData

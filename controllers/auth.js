@@ -83,6 +83,12 @@ exports.signup = async (req, res, next) => {
 exports.activate = async (req, res, next) => {
     const { token } = req.params;
     try {
+        if(token === '0') {
+            throwError({
+                message: messages.oneTimeToken.invalidData
+            })
+        }
+
         const findedOneTimeToken = await OneTimeToken.findOne({ 'activation.token': token });
         if (!findedOneTimeToken) {
             throwError({
@@ -103,6 +109,13 @@ exports.activate = async (req, res, next) => {
                     isActivated: true,
                 }
             })
+            await OneTimeToken.updateOne({ _id: findedOneTimeToken._id}, {
+                $set: {
+                    activation: {
+                        token: '0'
+                    }
+                }
+            }) 
             res.send({ message: messages.oneTimeToken.tokenHasBeenUsedSuccessfully });
         }
     } catch (err) {
