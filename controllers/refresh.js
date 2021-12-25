@@ -4,7 +4,7 @@ const throwError = require('../util/throwError');
 
 exports.refresh = (req, res, next) => {
     try {
-        const refreshToken = req.body.refreshToken;
+        const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
             throwError({
                 message: messages.jwtToken.invalidRefreshToken
@@ -20,12 +20,16 @@ exports.refresh = (req, res, next) => {
 
         const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN);
         const newRefreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN);
+        
+        res.cookie('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            path: '/refresh',
+            maxAge: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+        })
 
         res.status(201).send({
-            accessTokenExpiresIn: +process.env.ACCESS_TOKEN_EXPIRES_IN_SECONDS,
-            refreshTokenExpiresIn: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS,
             accessToken: newAccessToken,
-            refreshToken: newRefreshToken
+            accessTokenExpiresIn: +process.env.ACCESS_TOKEN_EXPIRES_IN_MILISECONDS,
         })
 
     } catch (err) {

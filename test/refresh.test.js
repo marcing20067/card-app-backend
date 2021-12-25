@@ -36,7 +36,7 @@ describe('/refresh GET', () => {
             jsonwebtoken.verify.mockReturnValue(user);
             jsonwebtoken.sign.mockReturnValue('token')
             response = await refreshRequest({
-                data: { refreshToken: 'dummy data' }
+                customCookie: 'refreshToken=dummy'
             });
             jest.restoreAllMocks()
         })
@@ -48,8 +48,6 @@ describe('/refresh GET', () => {
         it('response body should contain tokenData', () => {
             const data = response.body;
             expect(data).toHaveProperty('accessTokenExpiresIn');
-            expect(data).toHaveProperty('refreshTokenExpiresIn');
-            expect(data).toHaveProperty('refreshToken');
             expect(data).toHaveProperty('accessToken');
         })
     })

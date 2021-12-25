@@ -33,11 +33,15 @@ exports.login = async (req, res, next) => {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
         });
 
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            path: '/refresh',
+            maxAge: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+        })
+
         res.send({
             accessToken: accessToken,
-            refreshToken: refreshToken,
             accessTokenExpiresIn: +process.env.ACCESS_TOKEN_EXPIRES_IN_MILISECONDS,
-            refreshTokenExpiresIn: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
         });
     } catch (err) {
         next(err)
