@@ -18,12 +18,19 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(cors({
-    origin: ['http://localhost:4200', 'https://card-app-frontend.netlify.app'],
+    origin: 'http://localhost:3000',
 }))
-
 
 app.use(routes)
 
 app.use(error)
+
+app.get('*', (req, res, next) => {
+    const acceptTypes = req.headers.accept.split(',');
+    if(acceptTypes.includes('text/html')) {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'))
+    }
+})
+
 
 module.exports = app;
