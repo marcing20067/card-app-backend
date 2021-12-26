@@ -154,7 +154,7 @@ exports.getStatus = async (req, res, next) => {
 
 exports.logout = (req, res, next) => {
     try {
-        res.clearCookie("refreshToken");
+        res.clearCookie("refreshToken", { path: '/refresh' });
         res.send({ message: 'Login successfully' })
     } catch (err) {
         next(err);
