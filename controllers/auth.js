@@ -87,7 +87,7 @@ exports.signup = async (req, res, next) => {
 exports.activate = async (req, res, next) => {
     const { token } = req.params;
     try {
-        if(token === '0') {
+        if (token === '0') {
             throwError({
                 message: messages.oneTimeToken.invalidData
             })
@@ -113,13 +113,13 @@ exports.activate = async (req, res, next) => {
                     isActivated: true,
                 }
             })
-            await OneTimeToken.updateOne({ _id: findedOneTimeToken._id}, {
+            await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, {
                 $set: {
                     activation: {
                         token: '0'
                     }
                 }
-            }) 
+            })
             res.send({ message: messages.oneTimeToken.tokenHasBeenUsedSuccessfully });
         }
     } catch (err) {
@@ -145,6 +145,15 @@ exports.getStatus = async (req, res, next) => {
         if (isValidationError) {
             err.statusCode = 400;
         }
+        next(err);
+    }
+}
+
+exports.logout = (req, res, next) => {
+    try {
+        res.clearCookie("refreshToken");
+        res.send({ message: 'Login successfully' })
+    } catch (err) {
         next(err);
     }
 }

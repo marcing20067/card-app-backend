@@ -23,14 +23,14 @@ app.use(cors({
 
 app.use(routes)
 
-app.use(error)
-
 app.get('*', (req, res, next) => {
     const acceptTypes = req.headers.accept.split(',');
     if(acceptTypes.includes('text/html')) {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'))
+        return res.sendFile(path.join(__dirname, 'public', 'index.html'))
     }
+    next();
 })
 
+app.use(error)
 
 module.exports = app;
