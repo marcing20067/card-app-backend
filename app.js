@@ -25,7 +25,7 @@ app.use(routes)
 
 app.get('*', (req, res, next) => {
     const acceptTypes = req.headers.accept.split(',');
-    if(acceptTypes.includes('text/html')) {
+    if (acceptTypes.includes('text/html')) {
         return res.sendFile(path.join(__dirname, 'public', 'index.html'))
     }
     next();
