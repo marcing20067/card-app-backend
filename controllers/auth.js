@@ -8,6 +8,7 @@ const throwError = require('../util/throwError');
 
 exports.login = async (req, res, next) => {
     const { password, username } = req.body;
+    const rememberMe = req.query.rememberMe || 'false';
 
     try {
         const findedUser = await User.findOne({ username: username, isActivated: true });
@@ -33,11 +34,13 @@ exports.login = async (req, res, next) => {
             expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
         });
 
-        res.cookie('refreshToken', refreshToken, {
-            httpOnly: true,
-            path: '/refresh',
-            maxAge: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
-        })
+        if (rememberMe === 'true') {
+            res.cookie('refreshToken', refreshToken, {
+                httpOnly: true,
+                path: '/refresh',
+                maxAge: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
+            })
+        }
 
         res.send({
             accessToken: accessToken,
