@@ -70,7 +70,7 @@ const request = (app, options, lowercaseMethod) => {
     if (customCookie) {
         request = request.set('Cookie', customCookie)
     }
-    request = request.set('Authorization', 'Bearer ' + 'Randomtoken');
+    request = request.set('Authorization', 'Bearer ' + 'Randomtoken').set('Accept', 'application/json');
 
     return request;
 }

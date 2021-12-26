@@ -50,8 +50,6 @@ describe('/auth/login POST', () => {
             const data = response.body;
             expect(data).toHaveProperty('accessToken');
             expect(data).toHaveProperty('accessTokenExpiresIn');
-            expect(data).toHaveProperty('refreshToken');
-            expect(data).toHaveProperty('refreshTokenExpiresIn');
         })
     })
 

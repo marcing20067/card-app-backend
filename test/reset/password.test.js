@@ -166,11 +166,6 @@ describe('/resetPassword/:oneTimeToken PUT', () => {
             const findedOneTimeToken = await OneTimeToken.findOne({ _id: oneTimeToken._id });
             expect(findedOneTimeToken.resetPassword.token).toBe('0');
         })
-
-        it('user should have not same password', async () => {
-            const findedUser = await User.findOne({ _id: oneTimeToken.creator });
-            expect(findedUser.password).not.toBe(user.password);
-        })
     })
 
 
