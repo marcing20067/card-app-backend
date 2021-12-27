@@ -6,9 +6,7 @@ exports.refresh = (req, res, next) => {
     try {
         const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
-            throwError({
-                message: messages.jwtToken.invalidRefreshToken
-            })        
+            return res.send({ error: messages.jwtToken.invalidRefreshToken });        
         }
         
         const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);

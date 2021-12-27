@@ -60,12 +60,12 @@ describe('/refresh GET', () => {
                 });
             })
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
+            it('response status should be 200', () => {
+                expect(response.status).toBe(200);
             })
 
-            it('message should be correct', () => {
-                const message = response.body.message;
+            it('response body should contain error', () => {
+                const message = response.body.error;
                 expect(message).toBe('Invalid refresh token.')
             })
         })
