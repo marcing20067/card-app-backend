@@ -6,10 +6,10 @@ const SetSchema = new Schema({
     cards: {
         type: [{
             _id: false,
-            concept: { type: String, required: true },
-            definition: { type: String, required: true },
+            concept: { type: String, required: true, maxLength: 50 },
+            definition: { type: String, required: true, maxLength: 100 },
             group: { type: Number, required: true, min: 1, max: 6 },
-            example: { type: String, minLength: 3, maxLength: 100 }
+            example: { type: String, maxLength: 100 }
         }],
         validate: {
             validator: (cards) => {
