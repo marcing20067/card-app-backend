@@ -1,19 +1,44 @@
 # Card App Backend
 
-## About project
+## Live
 
-Lorem ipsum 
+[Live](https://card-app-backend.herokuapp.com/home)
 
-## Routes
+## Stack
 
-- POST /login - To login user
-- POST /signup - To create account
-- GET /sets - To get all sets for user²
-- GET /sets/:setIndex - Get one set ¹²
-- DELETE /sets/:setIndex - Delete one set¹²
-- PUT /sets/:setIndex - Edit one set¹²
-- POST /sets - To add new set²
+- Javascript
+- Nodejs
+- Express
+- Nodemailer(sendgrid) + Mjml,
+- Jest
+- Mongodb
 
-¹ Set is selected by index(sets are array)
-² Here we need the user ID that is in the jwt token
+## Installation
 
+```sh
+npm install
+```
+
+## Usage
+
+```sh
+npm start
+```
+
+## Testing 
+
+```sh
+npm run test
+```
+
+## Build
+
+Get frontend from [repo](https://github.com/marcing20067/card-app-frontend), install packages and build it.
+
+```sh
+    bash build.sh
+```
+
+## Copyright
+
+- **Code**: Marcin Grądzik

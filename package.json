@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "scripts": {
     "heroku-prebuild": "bash build.sh",
-    "build:public": "cd frontend && ng build",
     "start": "SET DEBUG=card-app-backend:* & nodemon ./bin/www",
     "start:prod": "node ./bin/www",
     "test": "jest",
