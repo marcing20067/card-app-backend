@@ -8,7 +8,8 @@ const SetSchema = new Schema({
             _id: false,
             concept: { type: String, required: true },
             definition: { type: String, required: true },
-            group: { type: Number, required: true, min: 1, max: 6 }
+            group: { type: Number, required: true, min: 1, max: 6 },
+            example: { type: String, minLength: 3, maxLength: 100 }
         }],
         validate: {
             validator: (cards) => {
