@@ -36,7 +36,7 @@ npm run test
 Get frontend from [repo](https://github.com/marcing20067/card-app-frontend), install packages, build it and move results to public folder.
 
 ```sh
-    bash build.sh
+bash build.sh
 ```
 
 ## Copyright
