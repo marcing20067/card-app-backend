@@ -6,9 +6,9 @@ exports.refresh = (req, res, next) => {
     try {
         const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
-            return res.send({ error: messages.jwtToken.invalidRefreshToken });        
+            return res.send({ error: messages.jwtToken.invalidRefreshToken });
         }
-        
+
         const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
         if (!payload) {
             throwError({
@@ -18,9 +18,10 @@ exports.refresh = (req, res, next) => {
 
         const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN);
         const newRefreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN);
-        
-        res.cookie('refreshToken', newRefreshToken, {
+
+        res.cookie('refreshToken', refreshToken, {
             httpOnly: true,
+            sameSite: 'lax',
             path: '/refresh',
             maxAge: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
         })

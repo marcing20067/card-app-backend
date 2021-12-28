@@ -37,6 +37,7 @@ exports.login = async (req, res, next) => {
         if (rememberMe === 'true') {
             res.cookie('refreshToken', refreshToken, {
                 httpOnly: true,
+                sameSite: 'lax',
                 path: '/refresh',
                 maxAge: +process.env.REFRESH_TOKEN_EXPIRES_IN_MILISECONDS
             })
@@ -48,6 +49,20 @@ exports.login = async (req, res, next) => {
         });
     } catch (err) {
         next(err)
+    }
+}
+
+exports.logout = (req, res, next) => {
+    try {
+        res.clearCookie("refreshToken", { 
+            path: '/refresh', 
+            sameSite: 'lax', 
+            httpOnly: true 
+        });
+
+        res.send({ message: 'Logout successfully' })
+    } catch (err) {
+        next(err);
     }
 }
 
@@ -152,11 +167,3 @@ exports.getStatus = async (req, res, next) => {
     }
 }
 
-exports.logout = (req, res, next) => {
-    try {
-        res.clearCookie("refreshToken", { path: '/refresh' });
-        res.send({ message: 'Login successfully' })
-    } catch (err) {
-        next(err);
-    }
-}
