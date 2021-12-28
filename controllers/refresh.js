@@ -19,7 +19,7 @@ exports.refresh = (req, res, next) => {
         const newAccessToken = jwt.sign(payload, process.env.ACCESS_TOKEN);
         const newRefreshToken = jwt.sign(payload, process.env.REFRESH_TOKEN);
 
-        res.cookie('refreshToken', refreshToken, {
+        res.cookie('refreshToken', newRefreshToken, {
             httpOnly: true,
             sameSite: 'lax',
             path: '/refresh',
