@@ -59,6 +59,7 @@ exports.deleteSet = async (req, res, next) => {
 exports.updateSet = async (req, res, next) => {
     const userId = req.userData.id;
     const setId = req.params.setId;
+    const isHandleNameValidator = req.query.handleName || 'true';
 
     const newSet = {
         name: req.body.name,
@@ -68,15 +69,30 @@ exports.updateSet = async (req, res, next) => {
     };
 
     try {
+        if (isHandleNameValidator === 'true') {
+            if (newSet.name && newSet.creator) {
+                const setWithTakenName = await Set.findOne({ name: newSet.name, creator: newSet.creator });
+                if (setWithTakenName) {
+                    throw new Error('Name taken');
+                }
+            }
+        }
         const updateData = await Set.updateOne({ _id: setId, creator: userId }, { $set: newSet }, { runValidators: true });
         res.send({ ...newSet, _id: setId });
     }
     catch (err) {
+        if (err.message === 'Name taken') {
+            err.statusCode = 409;
+            err.errorMessage = 'Name is already taken.'
+            return next(err);
+        }
+
         const mongoError = new MongoError(err);
         if (mongoError.isValidationError()) {
             err.statusCode = 400;
             err.errorMessage = mongoError.getMessage();
         }
+
         next(err)
     }
 }
