@@ -1,4 +1,4 @@
-# Card App Backend
+# Poliglot
 
 ## Live
 
@@ -33,7 +33,7 @@ npm run test
 
 ## Build
 
-Get frontend from [repo](https://github.com/marcing20067/card-app-frontend), install packages, build it and move results to public folder.
+Get frontend from [repo](https://github.com/marcing20067/poliglot-frontend), install packages, build it and move results to public folder.
 
 ```sh
 bash build.sh
