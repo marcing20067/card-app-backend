@@ -4,7 +4,7 @@ const basicMjml = (href, action) => `
 <mjml>
     <mj-head>
       <mj-font name="Roboto" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700"></mj-font>
-      <mj-title>Card App</mj-title>
+      <mj-title>Poliglot</mj-title>
       <mj-attributes>
         <mj-all font-family="Roboto" font-size="16px" line-height="125%" padding="0px" color="#00000099"></mj-all>
       </mj-attributes>
@@ -19,7 +19,7 @@ const basicMjml = (href, action) => `
     <mj-body>
       <mj-section padding="48px 0">
         <mj-column>
-          <mj-text font-size="36px" font-weight="700" color="#ffad60">Card App</mj-text>
+          <mj-text font-size="36px" font-weight="700" color="#ffad60">Poliglot</mj-text>
   
           <mj-text css-class="link"><a href="${href}" target="_blank" rel="noopener">
               Kliknij tutaj, aby ${ action }!
@@ -54,8 +54,8 @@ module.exports = {
         }
     },
     subject: {
-        activation: 'Card App | Aktywuj konto',
-        resetPassword: 'Card App | Zresetuj hasło',
-        resetUsername: 'Card App | Zresetuj nazwę użytkownika',
+        activation: 'Poliglot | Aktywuj konto',
+        resetPassword: 'Poliglot | Zresetuj hasło',
+        resetUsername: 'Poliglot | Zresetuj nazwę użytkownika',
     }
 }

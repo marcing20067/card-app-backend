@@ -2,7 +2,7 @@
 
 ## Live
 
-[Live](https://card-app-backend.herokuapp.com/home)
+[Live](https://poliglot-app.herokuapp.com/home)
 
 ## Stack
 
