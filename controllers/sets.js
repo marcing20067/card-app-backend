@@ -59,7 +59,6 @@ exports.deleteSet = async (req, res, next) => {
 exports.updateSet = async (req, res, next) => {
     const userId = req.userData.id;
     const setId = req.params.setId;
-    const isHandleNameValidator = req.query.handleName || 'true';
 
     const newSet = {
         name: req.body.name,
@@ -69,12 +68,10 @@ exports.updateSet = async (req, res, next) => {
     };
 
     try {
-        if (isHandleNameValidator === 'true') {
-            if (newSet.name && newSet.creator) {
-                const setWithTakenName = await Set.findOne({ name: newSet.name, creator: newSet.creator });
-                if (setWithTakenName) {
-                    throw new Error('Name taken');
-                }
+        if (newSet.name && newSet.creator) {
+            const setWithTakenName = await Set.findOne({ _id: { $nin: [setId] }, name: newSet.name, creator: newSet.creator });
+            if (setWithTakenName) {
+                throw new Error('Name taken');
             }
         }
         const updateData = await Set.updateOne({ _id: setId, creator: userId }, { $set: newSet }, { runValidators: true });
