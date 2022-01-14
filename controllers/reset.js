@@ -30,12 +30,12 @@ exports.resetPasswordWithToken = async (req, res, next) => {
     const { newPassword } = req.body;
 
     try {
-        if(token === '0') {
+        if (token === '0') {
             throwError({
                 message: messages.oneTimeToken.invalidData
             })
         }
-        
+
         const findedOneTimeToken = await OneTimeToken.findOne({ 'resetPassword.token': token });
         if (!findedOneTimeToken) {
             throwError()
@@ -48,11 +48,13 @@ exports.resetPasswordWithToken = async (req, res, next) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, +process.env.HASHED_PASSWORD_LENGTH)
         await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { password: hashedPassword } });
-        await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, { $set: {
-            resetPassword: {
-                token: '0'
+        await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, {
+            $set: {
+                resetPassword: {
+                    token: '0'
+                }
             }
-        }})
+        })
         res.send({ message: messages.user.passwordWasChanged })
     } catch (error) {
         next(error);
@@ -85,7 +87,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
     const { newUsername } = req.body;
 
     try {
-        if(token === '0') {
+        if (token === '0') {
             throwError({
                 message: messages.oneTimeToken.invalidData
             })
@@ -105,15 +107,23 @@ exports.resetUsernameWithToken = async (req, res, next) => {
             })
         }
 
-        if (findedOneTimeToken && findedUser) {
-            await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { username: newUsername } });
-            await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, { $set: {
+        const userWithNewUsername = await User.findOne({ username: newUsername });
+        if (userWithNewUsername) {
+            throwError({
+                status: 409,
+                message: 'Username is already taken.'
+            })
+        }
+
+        await User.updateOne({ _id: findedOneTimeToken.creator }, { $set: { username: newUsername } });
+        await OneTimeToken.updateOne({ _id: findedOneTimeToken._id }, {
+            $set: {
                 resetUsername: {
                     token: '0'
                 }
-            }})
-            res.send({ message: 'Username has been changed successfully.' })
-        }
+            }
+        })
+        res.send({ message: 'Username has been changed successfully.' })
     } catch (err) {
         next(err)
     }

@@ -70,20 +70,18 @@ exports.updateSet = async (req, res, next) => {
     try {
         if (newSet.name && newSet.creator) {
             const setWithTakenName = await Set.findOne({ _id: { $nin: [setId] }, name: newSet.name, creator: newSet.creator });
+
             if (setWithTakenName) {
-                throw new Error('Name taken');
+                throwError({
+                    status: 409,
+                    errorMessage: 'Name is already taken.'
+                })
             }
         }
         const updateData = await Set.updateOne({ _id: setId, creator: userId }, { $set: newSet }, { runValidators: true });
         res.send({ ...newSet, _id: setId });
     }
     catch (err) {
-        if (err.message === 'Name taken') {
-            err.statusCode = 409;
-            err.errorMessage = 'Name is already taken.'
-            return next(err);
-        }
-
         const mongoError = new MongoError(err);
         if (mongoError.isValidationError()) {
             err.statusCode = 400;
@@ -107,7 +105,10 @@ exports.addSet = async (req, res, next) => {
         if (set.name && set.creator) {
             const setWithTakenName = await Set.findOne({ name: set.name, creator: set.creator });
             if (setWithTakenName) {
-                throw new Error('Name taken');
+                throwError({
+                    status: 409,
+                    errorMessage: 'Name is already taken.'
+                })
             }
         }
 
@@ -115,12 +116,6 @@ exports.addSet = async (req, res, next) => {
         const createdSet = await newSet.save();
         res.status(201).send(createdSet);
     } catch (err) {
-        if (err.message === 'Name taken') {
-            err.statusCode = 409;
-            err.errorMessage = 'Name is already taken.'
-            return next(err);
-        }
-
         const mongoError = new MongoError(err);
         if (mongoError.isValidationError()) {
             err.statusCode = 400
