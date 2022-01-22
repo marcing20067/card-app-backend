@@ -60,7 +60,7 @@ OneTimeTokenSchema.methods.createUrl = function (tokenType) {
         const correctTokenType = tokenType.replace('U', '/u').replace('P', '/p');
         return `${frontendUrl}/${correctTokenType}/${token}`;
     }
-    return `${frontendUrl}/${tokenType}/${token}`;
+    return `${frontendUrl}/auth/${tokenType}/${token}`;
 }
 
 OneTimeTokenSchema.methods.hasTokenExpired = function (tokenType) {
