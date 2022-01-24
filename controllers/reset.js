@@ -111,7 +111,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
         if (userWithNewUsername) {
             throwError({
                 status: 409,
-                message: 'Username is already taken.'
+                message: messages.user.usernameTaken
             })
         }
 
@@ -123,7 +123,7 @@ exports.resetUsernameWithToken = async (req, res, next) => {
                 }
             }
         })
-        res.send({ message: 'Username has been changed successfully.' })
+        res.send({ message: messages.user.usernameWasChanged })
     } catch (err) {
         next(err)
     }

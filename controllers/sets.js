@@ -1,6 +1,7 @@
 const Set = require('../models/set');
 const MongoError = require('../util/mongoError');
 const throwError = require('../util/throwError');
+const messages = require('../messages/messages');
 
 exports.getSets = async (req, res, next) => {
     const page = +req.query.page || 1;
@@ -74,7 +75,7 @@ exports.updateSet = async (req, res, next) => {
             if (setWithTakenName) {
                 throwError({
                     status: 409,
-                    message: 'Name is already taken.'
+                    message: messages.sets.nameTaken
                 })
             }
         }
@@ -107,7 +108,7 @@ exports.addSet = async (req, res, next) => {
             if (setWithTakenName) {
                 throwError({
                     status: 409,
-                    message: 'Name is already taken.'
+                    message: messages.sets.nameTaken
                 })
             }
         }

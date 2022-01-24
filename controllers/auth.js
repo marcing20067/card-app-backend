@@ -60,7 +60,7 @@ exports.logout = (req, res, next) => {
             httpOnly: true 
         });
 
-        res.send({ message: 'Logout successfully' })
+        res.send({ message: messages.user.logoutSuccessfully })
     } catch (err) {
         next(err);
     }

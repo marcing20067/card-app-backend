@@ -12,11 +12,16 @@ module.exports = {
         invalidData: 'User does not exist.',
         usernameTaken: 'Username is already taken.',
         invalidUsername: 'Username or password is invalid.',
+        usernameWasChanged: 'Username has been changed successfully.',
         passwordWasChanged: 'Password has been changed successfully.',
-        samePassword: 'The password is the same as the previous one.'
+        samePassword: 'The password is the same as the previous one.',
+        logoutSuccessfully: 'Logout successfully.'
     },
     jwtToken: {
         invalidRefreshToken: 'Invalid refresh token.',
         invalidAccessToken: 'Invalid authorization.'
+    },
+    sets: {
+        nameTaken: 'Name is already taken.'
     }
 }
