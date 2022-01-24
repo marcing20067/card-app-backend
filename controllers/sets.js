@@ -74,7 +74,7 @@ exports.updateSet = async (req, res, next) => {
             if (setWithTakenName) {
                 throwError({
                     status: 409,
-                    errorMessage: 'Name is already taken.'
+                    message: 'Name is already taken.'
                 })
             }
         }
@@ -107,7 +107,7 @@ exports.addSet = async (req, res, next) => {
             if (setWithTakenName) {
                 throwError({
                     status: 409,
-                    errorMessage: 'Name is already taken.'
+                    message: 'Name is already taken.'
                 })
             }
         }
