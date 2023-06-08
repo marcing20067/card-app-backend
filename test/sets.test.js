@@ -1,638 +1,332 @@
-const { validSet, makeHttpRequest, createValidUser, createValidSet } = require('./testApi');
-const app = require('../app');
-const mongoose = require('mongoose');
-const Set = require('../models/set');
-const User = require('../models/user');
-
-let user;
-beforeAll(async () => {
-    user = await createValidUser();
-})
-
-afterAll(async () => {
-    await User.deleteOne({ _id: user._id })
-})
-
-afterAll(done => {
-    mongoose.connection.close()
-    done();
-})
-
-describe('/sets GET', () => {
-    const setsRequest = (extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'GET',
-            endpoint: '/sets',
-            isIncludeToken: true,
-            customJwtVerifyReturn: user,
-            ...extraOptions
-        })
-    }
-
-    describe('when request is correct', () => {
-        let response;
-        beforeAll(async () => {
-            response = await setsRequest();
-        })
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
-    })
-
-    describe('pagination', () => {
-        describe('when request is correct', () => {
-            let createdSets;
-            beforeAll(async () => {
-                const sets = [{
-                    ...validSet, name: 'name one', creator: user._id
-                }, {
-                    ...validSet, name: 'name two', creator: user._id
-                }]
-
-                createdSets = await Set.insertMany(sets)
-            })
-
-            afterAll(async () => {
-                await Set.deleteMany({
-                    creator: user._id
-                });
-            })
-
-            let response;
-            beforeAll(async () => {
-                response = await setsRequest({
-                    endpoint: '/sets?page=2&items=1'
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 200', () => {
-                expect(response.status).toBe(200);
-            })
-
-            it('response should contain correct sets', () => {
-                const paginationSets = response.body;
-                expect(paginationSets.length).toBe(1);
-                expect(paginationSets[0].name).toBe(createdSets[1].name)
-            })
-        })
-
-        describe('when sets on this page doesnt exists', () => {
-            let response;
-            beforeAll(async () => {
-                response = await setsRequest({
-                    endpoint: '/sets?page=30&items=1'
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 200', () => {
-                expect(response.status).toBe(200);
-            })
-
-            it('response should be empty array', () => {
-                expect(response.body).toStrictEqual([])
-            })
-        })
-    })
-})
-
-describe('/sets/:setId GET', () => {
-    const getSetRequest = (setId, extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'GET',
-            endpoint: `/sets/${setId}`,
-            isIncludeToken: true,
-            customJwtVerifyReturn: user,
-            ...extraOptions
-        });
-    }
-
-    describe('when request is correct', () => {
-        let setId;
-        beforeAll(async () => {
-            const createdSet = await createValidSet({ creator: user._id });
-            setId = createdSet._id;
-        })
-
-        let response;
-        beforeAll(async () => {
-            response = await getSetRequest(setId);
-        })
-
-        afterAll(async () => {
-            await Set.deleteOne({ _id: setId });
-        })
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
-
-        it('response body should be a set', () => {
-            expect(response.body).toHaveProperty('_id');
-            expect(response.body).toHaveProperty('name');
-            expect(response.body).toHaveProperty('cards');
-            expect(response.body).toHaveProperty('stats');
-            expect(response.body).toHaveProperty('creator');
-        })
-    })
-
-    describe('when request is wrong', () => {
-        describe('request with wrong setId', () => {
-            let response;
-            beforeAll(async () => {
-                const wrongSetId = 'wrongSetId';
-                response = await getSetRequest(wrongSetId);
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-    })
-})
-
-describe('/sets/:setId PUT', () => {
-    const putSetRequest = (setId, newSet, extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'PUT',
-            endpoint: `/sets/${setId}`,
-            isIncludeToken: true,
-            data: newSet,
-            customJwtVerifyReturn: user,
-            ...extraOptions
-        });
-    }
-
-    describe('when request is correct', () => {
-        let setId;
-        beforeAll(async () => {
-            const createdSet = await createValidSet({ creator: user._id });
-            setId = createdSet._id;
-        });
-
-        let response;
-        beforeAll(async () => {
-            const updatedSet = { ...validSet, name: 'edited!' };
-            response = await putSetRequest(setId, updatedSet);
-        })
-
-        afterAll(async () => {
-            await Set.deleteOne({ _id: setId });
-        })
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
-
-        it('response body should contain set', () => {
-            expect(response.body).toHaveProperty('_id');
-            expect(response.body).toHaveProperty('name');
-            expect(response.body).toHaveProperty('cards');
-            expect(response.body).toHaveProperty('stats');
-            expect(response.body).toHaveProperty('creator');
-        })
-
-        it('name of edited set should be "edited!"', () => {
-            expect(response.body.name).toEqual('edited!');
-        })
-
-        it('updated set should exists in db', () => {
-            const findedSet = Set.findOne({ name: 'edited!', _id: setId });
-            expect(findedSet).not.toBe(null);
-        })
-    })
-    describe('when request is wrong', () => {
-        describe('when :setId param is wrong', () => {
-            beforeAll(async () => {
-                const wrongSetId = 'wrongSetId';
-                const updatedSet = { ...validSet, name: 'edited!' };
-                response = await putSetRequest(wrongSetId, updatedSet);
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-        describe('when new set is undefined', () => {
-            let setId;
-            beforeAll(async () => {
-                const set = await createValidSet({
-                    creator: user._id
-                });
-                setId = set._id;
-            })
-
-            let response;
-            beforeAll(async () => {
-                const newSet = undefined;
-                response = await putSetRequest(setId, newSet);
-            })
-
-            afterAll(async () => {
-                await Set.deleteOne({ _id: setId });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Name is required.');
-            })
-        })
-        describe('when only name is undefined', () => {
-            let setId
-            beforeAll(async () => {
-                const createdSet = await createValidSet({ creator: user._id });
-                setId = createdSet._id;
-            })
-
-            let response;
-            beforeAll(async () => {
-                const updatedSet = { ...validSet, name: undefined };
-                response = await putSetRequest(setId, updatedSet);
-            })
-
-            afterAll(async () => {
-                await Set.deleteOne({ _id: setId });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Name is required.');
-            })
-        })
-
-        describe('when only cards is undefined', () => {
-            let setId
-            beforeAll(async () => {
-                const createdSet = await createValidSet({ creator: user._id });
-                setId = createdSet._id;
-            })
-
-            beforeAll(async () => {
-                const newSet = { ...validSet, cards: undefined };
-                response = await putSetRequest(setId, newSet);
-            })
-
-            afterAll(async () => {
-                await Set.deleteOne({ _id: setId });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Cards is required.');
-            })
-        })
-
-        describe('when only stats is undefined', () => {
-            let setId;
-            beforeAll(async () => {
-                const createdSet = await createValidSet({ creator: user._id });
-                setId = createdSet._id;
-            })
-
-            beforeAll(async () => {
-                const newSet = { ...validSet, stats: undefined };
-                response = await putSetRequest(setId, newSet);
-            })
-
-            afterAll(async () => {
-                await Set.deleteOne({ _id: setId });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Stats is required.');
-            })
-        })
-    })
-})
-
-describe('/sets/:setId DELETE', () => {
-    const deleteSetRequest = (setId, extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'DELETE',
-            endpoint: `/sets/${setId}`,
-            isIncludeToken: true,
-            customJwtVerifyReturn: user,
-            ...extraOptions
-        });
-    }
-
-    describe('when request is correct', () => {
-        let setId;
-        beforeAll(async () => {
-            const createdSet = await createValidSet({ creator: user._id });
-            setId = createdSet._id;
-        })
-
-        let response;
-        beforeAll(async () => {
-            response = await deleteSetRequest(setId);
-        })
-
-        afterAll(async () => {
-            await Set.deleteOne({ _id: setId });
-        })
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
-    })
-
-    describe('wrong request', () => {
-        describe('request with wrong :setId param', () => {
-            let response;
-            beforeAll(async () => {
-                const wrongSetId = '3213213wrongparam123123';
-                response = await deleteSetRequest(wrongSetId);
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-    })
-})
-
-describe('/sets POST', () => {
-    const postSetRequest = (newSet, extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'POST',
-            endpoint: '/sets',
-            isIncludeToken: true,
-            data: newSet,
-            customJwtVerifyReturn: user,
-            ...extraOptions
-        })
-    }
-
-    describe('when request is correct', () => {
-        let response;
-        let createdSetId;
-        beforeAll(async () => {
-            response = await postSetRequest(validSet);
-            createdSetId = response.body._id;
-        })
-
-        afterAll(async () => {
-            await deleteSet({
-                _id: createdSetId
-            })
-        })
-
-        const deleteSet = async (setData) => {
-            await Set.deleteOne(setData)
-        }
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 201', () => {
-            expect(response.status).toBe(201)
-        })
-
-        it('response body should contain set data', () => {
-            expect(response.body).toHaveProperty('_id');
-            expect(response.body).toHaveProperty('name');
-            expect(response.body).toHaveProperty('cards');
-            expect(response.body).toHaveProperty('stats');
-            expect(response.body).toHaveProperty('creator');
-        })
-
-        it('created set should exists in db', async () => {
-            const findedSet = await Set.findOne({ _id: createdSetId })
-            expect(findedSet).not.toBe(null);
-        })
-    })
-
-    describe('when request is wrong', () => {
-        describe('when definition is duplicated', () => {
-            let response;
-            beforeAll(async () => {
-                response = await postSetRequest({
-                    ...validSet, cards: [
-                        {
-                            definition: 'dup',
-                            concept: 'dup1',
-                            group: 0
-                        },
-                        {
-                            definition: 'dup',
-                            concept: 'dup2',
-                            group: 0
-                        }, {
-                            definition: 'dup',
-                            concept: 'dup3',
-                            group: 0
-                        }, {
-                            definition: 'dup',
-                            concept: 'dup2',
-                            group: 0
-                        }]
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Concept "dup2" is duplicated.');
-            })
-        })
-
-        describe('when only name is required', () => {
-            let response;
-            beforeAll(async () => {
-                response = await postSetRequest({ ...validSet, name: undefined });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Name is required.');
-            })
-        })
-
-        describe('when only stats is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                response = await postSetRequest({ ...validSet, stats: undefined });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Stats is required.');
-            })
-        })
-
-        describe('when name is too short', () => {
-            let response;
-            beforeAll(async () => {
-                response = await postSetRequest({ ...validSet, name: 'n' });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Name is too short.');
-            })
-        })
-
-        describe('when sets is already taken', () => {
-            let createdSet;
-            beforeAll(async () => {
-                createdSet = await createValidSet({
-                    creator: user._id
-                })
-            })
-
-            let response;
-            beforeAll(async () => {
-                response = await postSetRequest({ ...createdSet._doc });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(409);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Name is already taken.');
-            })
-        })
-    })
-})
+const app = require("../app");
+const { clearChanges, closeConnection } = require("./helpers/db");
+const { makeHttpRequest } = require("./helpers/requests");
+const Set = require("../models/set");
+const { setObj, createSet } = require("./helpers/mocks");
+jest.mock("jsonwebtoken");
+
+afterEach(clearChanges);
+afterAll(closeConnection);
+
+describe("/sets GET", () => {
+  const getSetsRequest = (options) => {
+    return makeHttpRequest(app, {
+      method: "GET",
+      endpoint: "/sets",
+      mockJwt: true,
+      ...options,
+    });
+  };
+
+  it("when request is correct", async () => {
+    const response = await getSetsRequest();
+    const contentType = response.headers["content-type"];
+    const sets = response.body;
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+    expect(sets.length).toBe(0);
+    expect(sets).toEqual(expect.any(Array));
+  });
+
+  describe("pagination tests", () => {
+    it("when request is correct", async () => {
+      await createSet({ name: "name one" });
+      const set = await createSet({ name: "name two" });
+
+      const response = await getSetsRequest({
+        endpoint: "/sets?page=2&items=1",
+      });
+      const contentType = response.headers["content-type"];
+      const paginationSets = response.body;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(200);
+      expect(paginationSets.length).toBe(1);
+      expect(paginationSets[0].name).toBe(set.name);
+    });
+
+    it("when sets on this page doesnt exists", async () => {
+      const response = await getSetsRequest({
+        endpoint: "/sets?page=30&items=1",
+      });
+      const contentType = response.headers["content-type"];
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(200);
+      expect(response.body).toStrictEqual([]);
+    });
+  });
+});
+
+describe("/sets/:id GET", () => {
+  const getSetRequest = (setId) => {
+    return makeHttpRequest(app, {
+      method: "GET",
+      endpoint: `/sets/${setId}`,
+      mockJwt: true,
+    });
+  };
+
+  it("when request is correct", async () => {
+    const createdSet = await createSet();
+    const response = await getSetRequest(createdSet._id);
+    const contentType = response.headers["content-type"];
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+
+    expect(response.body).toMatchObject({
+      _id: expect.any(String),
+      name: expect.any(String),
+      cards: expect.any(Object),
+      creator: expect.any(String),
+      stats: expect.any(Object),
+    });
+  });
+
+  describe("when request is wrong", () => {
+    it("request with wrong set id", async () => {
+      const wrongSetId = "testtest123";
+      const response = await getSetRequest(wrongSetId);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
+    });
+  });
+});
+
+describe("/sets/:id PUT", () => {
+  const putSetRequest = (oldSetId, newSet, options) => {
+    return makeHttpRequest(app, {
+      method: "PUT",
+      endpoint: `/sets/${oldSetId}`,
+      data: newSet,
+      mockJwt: true,
+      ...options,
+    });
+  };
+
+  it("when request is correct", async () => {
+    const createdSet = await createSet();
+    const updatedSet = { ...createdSet, name: "edited!" };
+    const response = await putSetRequest(createdSet._id, updatedSet);
+    const contentType = response.headers["content-type"];
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+    expect(response.body.name).toEqual("edited!");
+
+    expect(response.body).toMatchObject({
+      _id: expect.any(String),
+      name: expect.any(String),
+      cards: expect.any(Object),
+      creator: expect.any(String),
+      stats: expect.any(Object),
+    });
+
+    const findedSet = await Set.findOne({ name: "edited!", _id: createdSet });
+    expect(findedSet).not.toBe(null);
+  });
+
+  describe("when request is wrong", () => {
+    it("when set id is wrong", async () => {
+      const wrongSetId = "wrongSetId";
+      const updatedSet = { ...setObj, name: "edited!" };
+      const response = await putSetRequest(wrongSetId, updatedSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
+    });
+
+    it("when new set is undefined", async () => {
+      const createdSet = await createSet();
+      const newSet = undefined;
+      const response = await putSetRequest(createdSet._id, newSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Name is required.");
+    });
+
+    it("when only name is undefined", async () => {
+      const createdSet = await createSet();
+      const updatedSet = { ...createdSet, name: undefined };
+      const response = await putSetRequest(createdSet._id, updatedSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Name is required.");
+    });
+
+    it("when only cards is undefined", async () => {
+      const createdSet = await createSet();
+      const newSet = { ...setObj, cards: undefined };
+      const response = await putSetRequest(createdSet._id, newSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Cards is required.");
+    });
+
+    it("when only stats is undefined", async () => {
+      const createdSet = await createSet();
+      const newSet = { ...createdSet, stats: undefined };
+      const response = await putSetRequest(createdSet._id, newSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Stats is required.");
+    });
+  });
+});
+
+describe("/sets/:createdSet DELETE", () => {
+  const deleteSetRequest = (setId, options) => {
+    return makeHttpRequest(app, {
+      method: "DELETE",
+      endpoint: `/sets/${setId}`,
+      mockJwt: true,
+      ...options,
+    });
+  };
+
+  it("when request is correct", async () => {
+    const createdSet = await createSet();
+    const response = await deleteSetRequest(createdSet._id);
+    const contentType = response.headers["content-type"];
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+  });
+
+  it("request with wrong :createdSet param", async () => {
+    const wrongSetId = "wrongSetId12345";
+    const response = await deleteSetRequest(wrongSetId);
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(400);
+    expect(message).toBe("Invalid request data.");
+  });
+});
+
+describe("/sets POST", () => {
+  const postSetRequest = (newSet, extraOptions) => {
+    return makeHttpRequest(app, {
+      method: "POST",
+      endpoint: "/sets",
+      data: newSet,
+      mockJwt: true,
+      ...extraOptions,
+    });
+  };
+
+  it("when request is correct", async () => {
+    const response = await postSetRequest(setObj);
+    const createdSetId = response.body._id;
+    const contentType = response.headers["content-type"];
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(201);
+
+    expect(response.body).toMatchObject({
+      _id: expect.any(String),
+      name: expect.any(String),
+      cards: expect.any(Object),
+      stats: expect.any(Object),
+      creator: expect.any(String),
+    });
+
+    const findedSet = await Set.findOne({ _id: createdSetId });
+    expect(findedSet).not.toBe(null);
+  });
+
+  describe("when request is wrong", () => {
+    it("when definition is duplicated", async () => {
+      const response = await postSetRequest({
+        ...setObj,
+        cards: [
+          {
+            definition: "definition",
+            concept: "duplicate",
+            group: 0,
+          },
+          {
+            definition: "definition",
+            concept: "duplicate",
+            group: 0,
+          },
+          {
+            definition: "definition",
+            concept: "noduplicate",
+            group: 0,
+          },
+        ],
+      });
+
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe('Concept "duplicate" is duplicated.');
+    });
+  });
+
+  it("when only name is required", async () => {
+    const response = await postSetRequest({ ...setObj, name: undefined });
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(400);
+    expect(message).toBe("Name is required.");
+  });
+
+  it("when only stats is undefined", async () => {
+    const response = await postSetRequest({ ...setObj, stats: undefined });
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(400);
+    expect(message).toBe("Stats is required.");
+  });
+
+  it("when name is too short", async () => {
+    const response = await postSetRequest({ ...setObj, name: "n" });
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(400);
+    expect(message).toBe("Name is too short.");
+  });
+
+  it("when sets is already taken", async () => {
+    const createdSet = await createSet();
+    const response = await postSetRequest(createdSet);
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
+
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(409);
+    expect(message).toBe("Name is already taken.");
+  });
+});

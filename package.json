@@ -6,7 +6,7 @@
     "start": "SET DEBUG=card-app-backend:* & nodemon ./bin/www",
     "start:prod": "node ./bin/www",
     "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --runInBand --coverage"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -19,6 +19,7 @@
     "mjml": "^4.11.0",
     "mongoose": "^5.13.2",
     "morgan": "~1.9.1",
+    "node-fetch": "^3.3.1",
     "nodemailer": "^6.7.0",
     "nodemailer-sendgrid-transport": "^0.2.0"
   },

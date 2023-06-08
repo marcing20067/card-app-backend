@@ -5,7 +5,6 @@ const OneTimeToken = require('../../models/oneTimeToken');
 const User = require('../../models/user');
 
 afterAll(done => {
-    mongoose.connection.close()
     done();
 })
 
