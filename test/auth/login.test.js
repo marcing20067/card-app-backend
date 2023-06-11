@@ -1,180 +1,107 @@
-const app = require('../../app');
-const mongoose = require('mongoose');
-const { makeHttpRequest, createValidUser, validUser } = require('../testApi');
-const User = require('../../models/user');
-const bcryptjs = require('bcryptjs');
-jest.mock('bcryptjs');
+const app = require("../../app");
 
-let user;
-beforeAll(async () => {
-    user = await createValidUser();
-})
 
-afterAll(async () => {
-    await User.deleteOne({ _id: user._id });
-})
+jest.mock("bcryptjs", () => ({
+  compare: jest.fn().mockResolvedValue(true),
+}));
 
-afterAll(done => {
-    mongoose.connection.close()
-    done()
-})
+const bcryptjs = require("bcryptjs");
+const { clearChanges, closeConnection } = require("../helpers/db");
+const { createUser, userObj } = require("../helpers/mocks");
+const { makeHttpRequest } = require("../helpers/requests");
 
-describe('/auth/login POST', () => {
-    const loginRequest = (userData) => {
-        return makeHttpRequest(app, {
-            method: 'POST',
-            endpoint: '/auth/login',
-            isIncludeToken: true,
-            data: userData,
-        });
-    }
+afterEach(clearChanges);
+afterAll(closeConnection);
 
-    describe('when request is correct', () => {
-        let response;
-        beforeAll(async () => {
-            bcryptjs.compare.mockResolvedValue(true);
-            response = await loginRequest(user._doc);
-            bcryptjs.compare.mockRestore();
-        })
+describe("/auth/login POST", () => {
+  const loginRequest = (userData) => {
+    return makeHttpRequest(app, {
+      method: "POST",
+      endpoint: "/auth/login",
+      data: userData,
+    });
+  };
 
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
+  it("when request is correct", async () => {
+    const user = await createUser();
+    const response = await loginRequest(user);
+    const data = response.body;
+    const contentType = response.headers["content-type"];
 
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+    expect(data).toHaveProperty("accessToken");
+    expect(data).toHaveProperty("accessTokenExpiresIn");
+  });
 
-        it('response body should contain token data', () => {
-            const data = response.body;
-            expect(data).toHaveProperty('accessToken');
-            expect(data).toHaveProperty('accessTokenExpiresIn');
-        })
-    })
+  describe("when request is invalid", () => {
+    it("when username is undefined", async () => {
+      const userData = {
+        ...userObj,
+        username: undefined,
+      };
+      const response = await loginRequest(userData);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
 
-    describe('when request is invalid', () => {
-        describe('when username is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...validUser,
-                    username: undefined
-                }
-                response = await loginRequest(userData)
-            })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+    it("when password is undefined", async () => {
+      const userData = {
+        ...userObj,
+        password: undefined,
+      };
+      const response = await loginRequest(userData);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
 
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('User does not exist.');
-            })
-        })
+    it("when username is invalid", async () => {
+      const userData = {
+        ...userObj,
+        username: "us",
+      };
+      const response = await loginRequest(userData);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-        describe('when password is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...validUser,
-                    password: undefined,
-                }
-                response = await loginRequest(userData)
-            })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+    it("when valid password is failed", async () => {
+      const user = await createUser();
+      bcryptjs.compare.mockResolvedValue(false);
+      response = await loginRequest(user);
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('User does not exist.');
-            })
-        })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
 
-        describe('when username is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...validUser,
-                    username: 'us',
-                }
-                response = await loginRequest(userData)
-            })
+    it("when password is invalid", async () => {
+      const userData = {
+        ...userObj,
+        password: "pas",
+      };
+      const response = await loginRequest(userData);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('User does not exist.');
-            })
-        })
-
-        describe('when valid password is failed', () => {
-            let response;
-            beforeAll(async () => {
-                bcryptjs.compare.mockResolvedValue(false);
-                response = await loginRequest(user._doc);
-                bcryptjs.compare.mockRestore();
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('User does not exist.');
-            })
-        })
-
-        describe('when password is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...validUser,
-                    password: 'pas',
-                }
-                response = await loginRequest(userData)
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('User does not exist.');
-            })
-        })
-    })
-})
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
+  });
+});

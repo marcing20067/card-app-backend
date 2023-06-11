@@ -1,306 +1,172 @@
-const app = require('../../app');
-const mongoose = require('mongoose');
-const { makeHttpRequest, createValidUser, createValidUserData } = require('../testApi');
-const User = require('../../models/user');
-const OneTimeToken = require('../../models/oneTimeToken');
+jest.mock("nodemailer", () => ({
+  createTransport: () => ({
+    sendMail: () => Promise.resolve(),
+  }),
+}));
 
-let user;
-beforeAll(async () => {
-    user = await createValidUser();
-})
+const app = require("../../app");
+const User = require("../../models/user");
+const OneTimeToken = require("../../models/oneTimeToken");
+const { clearChanges, closeConnection } = require("../helpers/db");
+const { createUser, userObj } = require("../helpers/mocks");
+const { makeHttpRequest } = require("../helpers/requests");
 
-afterAll(async () => {
-    await User.deleteOne({ _id: user._id });
-})
+afterEach(clearChanges);
+afterAll(closeConnection);
 
-afterAll(done => {
-    mongoose.connection.close()
-    done()
-})
+describe("/signup POST", () => {
+  const signupRequest = (userData) => {
+    return makeHttpRequest(app, {
+      method: "POST",
+      data: userData,
+      endpoint: "/auth/signup",
+    });
+  };
 
-describe('/signup POST', () => {
-    const signupRequest = (userData) => {
-        return makeHttpRequest(app,
-            {
-                method: 'POST',
-                data: userData,
-                endpoint: '/auth/signup'
-            })
-    }
+  it("when request is correct", async () => {
+    const response = await signupRequest(userObj);
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
 
-    describe('when request is correct', () => {
-        const userData = createValidUserData();
-        let response;
-        beforeAll(async () => {
-            response = await signupRequest(userData);
-        })
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(201);
+    expect(message).toBe("Check your email.");
 
-        afterAll(async () => {
-            const findedUser = await User.findOne({ username: userData.username });
-            await User.deleteOne({ _id: findedUser._id });
-            await OneTimeToken.deleteOne({ creator: findedUser._id });
-        })
+    const findedUser = await User.findOne({ username: userObj.username });
+    expect(findedUser).not.toBe(null);
 
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
+    const findedOneTimeToken = await OneTimeToken.findOne({
+      creator: findedUser._id,
+    });
+    expect(findedOneTimeToken).not.toBe(null);
+  });
 
-        it('response status should be 201', () => {
-            expect(response.status).toBe(201);
-        })
+  describe("when request is invalid", () => {
+    it("when username is too short", async () => {
+      const userData = {
+        ...userObj,
+        username: "u",
+      };
+      const response = await signupRequest(userData);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
 
-        it('message should be correct', () => {
-            const message = response.body.message;
-            expect(message).toBe('Check your email.');
-        })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Username is too short.");
+    });
 
-        it('created user should exists in db', async () => {
-            const findedUser = await User.findOne({ username: userData.username });
-            expect(findedUser).not.toBe(null);
-        })
+    it("when password is too short", async () => {
+      const userData = {
+        ...userObj,
+        password: "p",
+      };
+      const response = await signupRequest(userData);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
 
-        it('oneTimeToken should exists in db', async () => {
-            const user = await User.findOne({ username: userData.username });
-            const findedOneTimeToken = await OneTimeToken.findOne({ creator: user._id });
-            expect(findedOneTimeToken).not.toBe(null);
-        })
-    })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Password is too short.");
+    });
 
-    describe('when request is invalid', () => {
-        describe('when username is too short', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...createValidUserData(),
-                    username: 'u',
-                }
-                response = await signupRequest(userData);
-            });
+    it("when userData is empty object", async () => {
+      const userData = {};
+      const response = await signupRequest(userData);
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Username is required.");
+    });
 
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Username is too short.');
-            })
-        })
+    it("when only password is undefined", async () => {
+      const userData = {
+        ...userObj,
+        password: undefined,
+      };
+      const response = await signupRequest(userData);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-        describe('when password is too short', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...createValidUserData(),
-                    password: 'p'
-                }
-                response = await signupRequest(userData);
-            });
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Password is required.");
+    });
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+    it("when only username is undefined", async () => {
+      const userData = {
+        ...userObj,
+        username: undefined,
+      };
+      const response = await signupRequest(userData);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Username is required.");
+    });
 
-            })
+    it("when only email is undefined", async () => {
+      const userData = {
+        ...userObj,
+        email: undefined,
+      };
+      const response = await signupRequest(userData);
 
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Password is too short.');
-            })
-        })
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-        describe('when userData is empty object', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {};
-                response = await signupRequest(userData);
-            });
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Email is required.");
+    });
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+    it("when email is invalid", async () => {
+      const userData = {
+        ...userObj,
+        email: "email",
+      };
+      const response = await signupRequest(userData);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
+    });
 
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Username is required.');
-            })
-        })
+    it("when username is already taken", async () => {
+      const user = await createUser();
 
-        describe('when only password is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...createValidUserData(),
-                    password: undefined,
-                };
-                response = await signupRequest(userData);
-            });
+      const response = await signupRequest({
+        ...user,
+        email: `custom${user.email}`,
+      });
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(409);
+      expect(message).toBe("Username is already taken.");
+    });
 
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Password is required.');
-            })
-        })
+    it("when email is already taken", async () => {
+      const user = await createUser();
+      const response = await signupRequest({
+        ...user,
+        username: `custom${user.username}`,
+      });
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-        describe('when only username is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...createValidUserData(),
-                    username: undefined,
-                };
-                response = await signupRequest(userData);
-            });
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Username is required.');
-            })
-        })
-
-        describe('when only email is undefined', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...createValidUserData(),
-                    email: undefined
-                };
-                response = await signupRequest(userData);
-            });
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Email is required.');
-            })
-        })
-
-        describe('when email is invalid', () => {
-            let response;
-            beforeAll(async () => {
-                const userData = {
-                    ...createValidUserData(),
-                    email: 'email'
-                };
-                response = await signupRequest(userData);
-            });
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-
-        describe('when username is already taken', () => {
-            let user;
-            beforeAll(async () => {
-                user = await createValidUser();
-            })
-
-            let response;
-            beforeAll(async () => {
-                response = await signupRequest({ ...user._doc, email: `custom${user._doc.email}` });
-            })
-
-            afterAll(async () => {
-                await User.deleteMany({ password: user._doc.password })
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 409', () => {
-                expect(response.status).toBe(409);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Username is already taken.');
-            })
-        })
-
-        describe('when email is already taken', () => {
-            let user;
-            beforeAll(async () => {
-                user = await createValidUser();
-            })
-
-            let response;
-            beforeAll(async () => {
-                response = await signupRequest({ ...user._doc, username: 'dummyusername' });
-            })
-
-            afterAll(async () => {
-                await User.deleteMany({ password: user.password });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 409', () => {
-                expect(response.status).toBe(409);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Email is already taken.');
-            })
-        })
-    })
-})
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(409);
+      expect(message).toBe("Email is already taken.");
+    });
+  });
+});

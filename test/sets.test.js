@@ -1,9 +1,16 @@
+const { setObj, createSet } = require("./helpers/mocks");
+
+jest.mock("jsonwebtoken", () => {
+  const { JWT_MOCK_USER_ID } = require("./helpers/mocks");
+  return {
+    verify: jest.fn().mockReturnValue({ id: JWT_MOCK_USER_ID }),
+  };
+});
+
 const app = require("../app");
 const { clearChanges, closeConnection } = require("./helpers/db");
 const { makeHttpRequest } = require("./helpers/requests");
 const Set = require("../models/set");
-const { setObj, createSet } = require("./helpers/mocks");
-jest.mock("jsonwebtoken");
 
 afterEach(clearChanges);
 afterAll(closeConnection);
@@ -13,7 +20,6 @@ describe("/sets GET", () => {
     return makeHttpRequest(app, {
       method: "GET",
       endpoint: "/sets",
-      mockJwt: true,
       ...options,
     });
   };
@@ -64,7 +70,6 @@ describe("/sets/:id GET", () => {
     return makeHttpRequest(app, {
       method: "GET",
       endpoint: `/sets/${setId}`,
-      mockJwt: true,
     });
   };
 
@@ -105,7 +110,6 @@ describe("/sets/:id PUT", () => {
       method: "PUT",
       endpoint: `/sets/${oldSetId}`,
       data: newSet,
-      mockJwt: true,
       ...options,
     });
   };
@@ -200,7 +204,6 @@ describe("/sets/:createdSet DELETE", () => {
     return makeHttpRequest(app, {
       method: "DELETE",
       endpoint: `/sets/${setId}`,
-      mockJwt: true,
       ...options,
     });
   };
@@ -232,7 +235,6 @@ describe("/sets POST", () => {
       method: "POST",
       endpoint: "/sets",
       data: newSet,
-      mockJwt: true,
       ...extraOptions,
     });
   };

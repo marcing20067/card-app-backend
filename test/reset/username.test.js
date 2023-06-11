@@ -1,204 +1,118 @@
-const app = require('../../app');
-const mongoose = require('mongoose');
-const { makeHttpRequest, createValidUser } = require('../testApi');
-const OneTimeToken = require('../../models/oneTimeToken');
-const User = require('../../models/user');
+jest.mock("nodemailer", () => ({
+  createTransport: () => ({
+    sendMail: () => Promise.resolve(),
+  }),
+}));
 
-let user;
-beforeAll(async () => {
-    user = await createValidUser();
-})
+const app = require("../../app");
+const OneTimeToken = require("../../models/oneTimeToken");
+const User = require("../../models/user");
 
-afterAll(async () => {
-    await User.deleteOne({ _id: user._id });
-    await OneTimeToken.deleteOne({ creator: user._id })
-})
+const { clearChanges, closeConnection } = require("../helpers/db");
+const { createOneTimeToken, createUser } = require("../helpers/mocks");
+const { makeHttpRequest } = require("../helpers/requests");
 
-afterAll(done => {
-    mongoose.connection.close();
-    done();
-})
+afterEach(clearChanges);
+afterAll(closeConnection);
 
-describe('/resetUsername POST', () => {
-    const resetUsernameRequest = (username, extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'POST',
-            endpoint: `/reset/username`,
-            data: {
-                username: username
-            },
-            ...extraOptions
-        });
-    }
+describe("/resetUsername POST", () => {
+  const resetUsernameRequest = (username, extraOptions) => {
+    return makeHttpRequest(app, {
+      method: "POST",
+      endpoint: `/reset/username`,
+      data: {
+        username: username,
+      },
+      ...extraOptions,
+    });
+  };
 
-    describe('when request is correct', () => {
-        let oneTimeToken;
-        beforeAll(async () => {
-            const newOneTimeToken = new OneTimeToken({
-                creator: user._id
-            });
-            oneTimeToken = await newOneTimeToken.save();
-        })
+  it("when request is correct", async () => {
+    const oneTimeToken = await createOneTimeToken();
+    const user = await createUser();
+    const response = await resetUsernameRequest(user.username);
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
 
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+    expect(message).toBe("Check your email.");
 
-        let response;
-        beforeAll(async () => {
-            response = await resetUsernameRequest(user.username);
-        })
+    const findedOneTimeToken = await OneTimeToken.findOne({
+      creator: user._id,
+    });
+    expect(findedOneTimeToken).not.toEqual(oneTimeToken);
+  });
 
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
+  describe("when request is wrong", () => {
+    it("when username is wrong", async () => {
+      const wrongUsername = "";
+      const response = await resetUsernameRequest(wrongUsername);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
 
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
+  });
+});
 
-        it('message should be correct', () => {
-            const message = response.body.message;
-            expect(message).toBe('Check your email.');
-        })
+describe("/resetUsername/:oneTimeToken PUT", () => {
+  const resetUsernameWithTokenRequest = (resetUsernameToken, extraOptions) => {
+    return makeHttpRequest(app, {
+      method: "PUT",
+      endpoint: `/reset/username/${resetUsernameToken}`,
+      data: {},
+      ...extraOptions,
+    });
+  };
 
-        it('the one time token should be updated', async () => {
-            const findedOneTimeToken = await OneTimeToken.findOne({ creator: user._id });
-            expect(findedOneTimeToken).not.toEqual(oneTimeToken);
-        })
-    })
+  it("when request is correct", async () => {
+    const user = await createUser();
+    const oneTimeToken = await createOneTimeToken();
+    const response = await resetUsernameWithTokenRequest(
+      oneTimeToken.resetUsername.token,
+      {
+        data: {
+          newUsername: user.username + "random",
+        },
+      }
+    );
 
+    const contentType = response.headers["content-type"];
+    const message = response.body.message;
 
-    describe('when request is wrong', () => {
-        describe('when username is wrong', () => {
-            let user;
-            beforeAll(async () => {
-                user = await createValidUser();
-            })
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+    expect(message).toBe("Username has been changed successfully.");
 
-            let oneTimeToken;
-            beforeAll(async () => {
-                const newOneTimeToken = new OneTimeToken({
-                    creator: user._id
-                });
-                oneTimeToken = await newOneTimeToken.save();
-            })
+    const findedUser = await User.findOne({ _id: user._id });
+    expect(findedUser.username).toBe(user.username + "random");
 
-            let response;
-            beforeAll(async () => {
-                const wrongUsername = '';
-                response = await resetUsernameRequest(wrongUsername);
-            })
+    const findedOneTimeToken = await OneTimeToken.findOne({
+      _id: oneTimeToken._id,
+    });
+    expect(findedOneTimeToken.resetUsername.token).toBe("0");
+  });
 
-            afterAll(async () => {
-                await User.deleteOne({ _id: user._id });
-                await OneTimeToken.deleteOne({ creator: user._id })
-            })
+  describe("when request is wrong", () => {
+    it("when resetUsernameToken is wrong", async () => {
+      const user = await createUser();
+      await createOneTimeToken();
+      const wrongToken = "wrongToken";
+      const response = await resetUsernameWithTokenRequest(wrongToken, {
+        data: {
+          newUsername: user.username + "x",
+        },
+      });
 
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('User does not exist.');
-            })
-        })
-    })
-})
-
-describe('/resetUsername/:oneTimeToken PUT', () => {
-    const resetUsernameWithTokenRequest = (resetUsernameToken, extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'PUT',
-            endpoint: `/reset/username/${resetUsernameToken}`,
-            data: {},
-            ...extraOptions
-        });
-    }
-
-    describe('when request is correct', () => {
-        let user;
-        beforeAll(async () => {
-            user = await createValidUser();
-        })
-
-        let oneTimeToken;
-        beforeAll(async () => {
-            const newOneTimeToken = new OneTimeToken({
-                creator: user._id
-            });
-            oneTimeToken = await newOneTimeToken.save();
-        })
-
-        let response;
-        beforeAll(async () => {
-            response = await resetUsernameWithTokenRequest(oneTimeToken.resetUsername.token, {
-                data: {
-                    newUsername: user.username + 'random'
-                }
-            });
-        })
-
-        afterAll(async () => {
-            await User.deleteOne({ _id: user._id });
-            await OneTimeToken.deleteOne({ creator: user._id })
-        })
-
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
-
-        it('message should be correct', () => {
-            const message = response.body.message;
-            expect(message).toBe('Username has been changed successfully.');
-        })
-
-        it('user username should be changed', async () => {
-            const findedUser = await User.findOne({ _id: user._id });
-            expect(findedUser.username).toBe(user.username + 'random');
-        })
-
-        it('reset username token should be 0', async () => {
-            const findedOneTimeToken = await OneTimeToken.findOne({ _id: oneTimeToken._id });
-            expect(findedOneTimeToken.resetUsername.token).toBe('0');
-        })
-    })
-
-
-    describe('when request is wrong', () => {
-        describe('when resetUsernameToken is wrong', () => {
-            let response;
-            beforeAll(async () => {
-                const wrongToken = 'wrongToken';
-                response = await resetUsernameWithTokenRequest(wrongToken, {
-                    data: {
-                        newUsername: user.username + 'x'
-                    }
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-    })
-})
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
+    });
+  });
+});

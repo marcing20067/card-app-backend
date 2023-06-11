@@ -5,7 +5,7 @@
     "heroku-prebuild": "bash build.sh",
     "start": "SET DEBUG=card-app-backend:* & nodemon ./bin/www",
     "start:prod": "node ./bin/www",
-    "test": "jest",
+    "test": "jest --runInBand",
     "test:coverage": "jest --runInBand --coverage"
   },
   "dependencies": {

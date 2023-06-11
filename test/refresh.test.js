@@ -1,73 +1,46 @@
-const { makeHttpRequest, createValidUser } = require('./testApi');
-const app = require('../app');
-const mongoose = require('mongoose');
-const User = require('../models/user');
+jest.mock("jsonwebtoken", () => {
+  const { JWT_MOCK_USER_ID } = require("./helpers/mocks");
+  return {
+    verify: jest.fn().mockReturnValue({ id: JWT_MOCK_USER_ID }),
+    sign: jest.fn().mockReturnValue("token"),
+  };
+});
 
-const jsonwebtoken = require('jsonwebtoken');
-jest.mock('jsonwebtoken');
+const app = require("../app");
+const { clearChanges, closeConnection } = require("./helpers/db");
+const { makeHttpRequest } = require("./helpers/requests");
 
-let user;
-beforeAll(async () => {
-    user = await createValidUser();
-})
+afterEach(clearChanges);
+afterAll(closeConnection);
 
-afterAll(async () => {
-    await User.deleteOne({ _id: user._id });
-})
+describe("/refresh GET", () => {
+  const refreshRequest = (extraOptions) => {
+    return makeHttpRequest(app, {
+      method: "POST",
+      data: {},
+      endpoint: "/refresh",
+      ...extraOptions,
+    });
+  };
 
-afterAll(done => {
-    mongoose.connection.close()
-    done()
-})
+  it("when request is correct", async () => {
+    const response = await refreshRequest({
+      cookie: "refreshToken=dummy",
+    });
+    const data = response.body;
 
-describe('/refresh GET', () => {
-    const refreshRequest = (extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'POST',
-            data: {},
-            endpoint: '/refresh',
-            ...extraOptions
-        });
-    }
+    expect(response.statusCode).toBe(201);
+    expect(data).toHaveProperty("accessTokenExpiresIn");
+    expect(data).toHaveProperty("accessToken");
+  });
 
-    describe('when request is correct', () => {
-        let response;
-        beforeAll(async () => {
-            jsonwebtoken.verify.mockReturnValue(user);
-            jsonwebtoken.sign.mockReturnValue('token')
-            response = await refreshRequest({
-                customCookie: 'refreshToken=dummy'
-            });
-            jest.restoreAllMocks()
-        })
+  describe("when request is invalid", () => {
+    it("when refresh token doesn't exist", async () => {
+      const response = await refreshRequest();
+      const message = response.body.error;
 
-        it('response status should be 201', () => {
-            expect(response.statusCode).toBe(201);
-        })
-
-        it('response body should contain tokenData', () => {
-            const data = response.body;
-            expect(data).toHaveProperty('accessTokenExpiresIn');
-            expect(data).toHaveProperty('accessToken');
-        })
-    })
-
-    describe('when request is invalid', () => {
-        describe('when refresh token doesn\'t exist', () => {
-            beforeAll(async () => {
-                response = await refreshRequest({
-                    isIncludeToken: true
-                });
-            })
-
-            it('response status should be 200', () => {
-                expect(response.status).toBe(200);
-            })
-
-            it('response body should contain error', () => {
-                const message = response.body.error;
-                expect(message).toBe('Invalid refresh token.')
-            })
-        })
-    })
-})
+      expect(response.status).toBe(200);
+      expect(message).toBe("Invalid refresh token.");
+    });
+  });
+});

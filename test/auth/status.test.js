@@ -1,105 +1,49 @@
-const { makeHttpRequest, createValidUser, newUser, validUser } = require('../testApi');
-const app = require('../../app');
-const mongoose = require('mongoose');
-const User = require('../../models/user');
+jest.mock("jsonwebtoken", () => {
+  const { JWT_MOCK_USER_ID } = require("../helpers/mocks");
+  return {
+    verify: jest.fn().mockReturnValue({ id: JWT_MOCK_USER_ID }),
+  };
+});
 
-let user;
-beforeAll(async () => {
-    user = await createValidUser();
-})
+const { createUser } = require("../helpers/mocks");
+const app = require("../../app");
+const { makeHttpRequest } = require("../helpers/requests");
+const { clearChanges, closeConnection } = require("../helpers/db");
 
-afterAll(async () => {
-    await User.deleteOne({ _id: user._id })
-})
+afterEach(clearChanges);
+afterAll(closeConnection);
 
-afterAll(done => {
-    mongoose.connection.close()
-    done();
-})
+describe("/status GET", () => {
+  const statusRequest = (extraOptions) => {
+    return makeHttpRequest(app, {
+      method: "GET",
+      endpoint: "/auth/status",
+      ...extraOptions,
+    });
+  };
 
+  it("when request is correct", async () => {
+    const user = await createUser();
+    const response = await statusRequest();
+    const contentType = response.headers["content-type"];
 
-describe('/status GET', () => {
-    const statusRequest = (extraOptions) => {
-        return makeHttpRequest(app, {
-            method: 'GET',
-            endpoint: '/auth/status',
-            isIncludeToken: true,
-            customJwtVerifyReturn: user,
-            ...extraOptions
-        })
-    }
+    expect(/json/.test(contentType));
+    expect(response.status).toBe(200);
+    expect(response.body).toHaveProperty("email");
+    expect(response.body).toHaveProperty("username");
+    expect(response.body.email).toBe(user.email);
+    expect(response.body.username).toBe(user.username);
+  });
 
-    describe('when request is correct', () => {
-        let response;
-        beforeAll(async () => {
-            response = await statusRequest();
-        })
+  describe("wrong request", () => {
+    it("when user does not exist", async () => {
+      const response = await statusRequest();
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
 
-        it('type of response should contain json', () => {
-            const contentType = response.headers['content-type'];
-            expect(/json/.test(contentType))
-        })
-
-        it('response status should be 200', () => {
-            expect(response.status).toBe(200);
-        })
-
-        it('response body should contain email, username fields', () => {
-            expect(response.body).toHaveProperty('email');
-            expect(response.body).toHaveProperty('username');
-        })
-
-        it('email & username should be correct', () => {
-            expect(response.body.email).toBe(user.email);
-            expect(response.body.username).toBe(user.username);
-        })
-    })
-
-    describe('wrong request', () => {
-        describe('when jwt return id another user', () => {
-            let response;
-            beforeAll(async () => {
-                response = await statusRequest({
-                    customJwtVerifyReturn: { id: '5d6ede6a0ba62570afcedd3a' }
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-
-        describe('when jwt return wrong user id', () => {
-            let response;
-            beforeAll(async () => {
-                response = await statusRequest({
-                    customJwtVerifyReturn: { id: 'dasd12d' }
-                });
-            })
-
-            it('type of response should contain json', () => {
-                const contentType = response.headers['content-type'];
-                expect(/json/.test(contentType))
-            })
-
-            it('response status should be 400', () => {
-                expect(response.status).toBe(400);
-            })
-
-            it('message should be correct', () => {
-                const message = response.body.message;
-                expect(message).toBe('Invalid request data.');
-            })
-        })
-    })
-})
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
+    });
+  });
+});
