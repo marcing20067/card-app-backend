@@ -1,10 +1,10 @@
 const User = require("../models/user");
-const MongoError = require("../util/mongoError");
+const { MongoError } = require("../util/mongoError");
 const messages = require("../messages/messages");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const OneTimeToken = require("../models/oneTimeToken");
-const throwError = require("../util/throwError");
+const { throwError } = require("../util/throwError");
 
 exports.login = async (req, res, next) => {
   const { password, username } = req.body;
@@ -98,11 +98,10 @@ exports.signup = async (req, res, next) => {
     const mongoError = new MongoError(err);
     const message = mongoError.getMessage();
 
-    const isValidationError = mongoError.isValidationError();
     const isDuplicateError = mongoError.isDuplicateError();
-    if (isValidationError || isDuplicateError) {
+    if (message) {
       err.statusCode = isDuplicateError ? 409 : 400;
-      err.errorMessage = message || messages.global.invalidData;
+      err.errorMessage = message;
     }
     next(err);
   }
@@ -174,9 +173,10 @@ exports.getStatus = async (req, res, next) => {
     });
   } catch (err) {
     const mongoError = new MongoError(err);
-    const isValidationError = mongoError.isValidationError();
-    if (isValidationError) {
+    const message = mongoError.getMessage();
+    if (message) {
       err.statusCode = 400;
+      err.errorMessage = message;
     }
     next(err);
   }

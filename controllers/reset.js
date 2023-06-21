@@ -1,7 +1,7 @@
 const User = require('../models/user');
 const OneTimeToken = require('../models/oneTimeToken');
 const messages = require('../messages/messages');
-const throwError = require('../util/throwError');
+const { throwError } = require('../util/throwError');
 const bcrypt = require('bcryptjs');
 
 exports.resetPassword = async (req, res, next) => {

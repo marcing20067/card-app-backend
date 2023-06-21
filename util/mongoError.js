@@ -1,75 +1,56 @@
+const { Error } = require("mongoose");
+const messages = require("../messages/messages");
 
-module.exports = class MongoError {
-    constructor(error) {
-        this.error = error;
+exports.MongoError = class MongoError {
+  constructor(error) {
+    this.error = error;
+  }
+
+  getMessage() {
+    if (this.isDuplicateError()) {
+      const wrongKey = this.getFirstProperty(this.error.keyPattern);
+      return `${this.capitalizeFirstLetter(wrongKey)} is already taken.`;
     }
 
-    getOriginalErrorMessage() {
-        const errors = Object.values(this.error.errors);
-        const originalMessage = errors[0].properties.message;
-        return originalMessage;
+    if (this.error instanceof Error.CastError) {
+      return messages.global.invalidData;
     }
 
-    getMessage() {
-        if (this.isObjectIdError()) {
-            // No custom error message;
-            return;
-        }
-
-        const isDuplicateError = this.isDuplicateError();
-
-        if (isDuplicateError) {
-            const wrongKey = Object.keys(this.error.keyPattern)[0];
-            return `${this.capitalizeFirstLetter(wrongKey)} is already taken.`
-        }
-
-        const isValidationError = this.isValidationError();
-
-        if (isValidationError) {
-            const wrongProperty = this.getWrongProperty()
-            const originalMessage = this.getOriginalErrorMessage();
-            
-            if (!wrongProperty) {
-                return originalMessage;
-            }
-            if (originalMessage.includes('required')) {
-                const errorMessage = `${wrongProperty} is required.`;
-                return errorMessage;
-            }
-
-            if (originalMessage.includes('shorter')) {
-                const errorMessage = `${wrongProperty} is too short.`;
-                return errorMessage;
-            }
-        }
-
+    const errors = this.error.errors;
+    if (!errors) {
+      return;
     }
 
-    getWrongProperty() {
-        const originalMessage = this.getOriginalErrorMessage();
-        const wrongProperty = originalMessage.split('`')[1];
-        if (!wrongProperty) {
-            return;
-        }
-        if (wrongProperty) {
-            const formattedProperty = this.capitalizeFirstLetter(wrongProperty);
-            return formattedProperty;
-        }
-    }
+    const wrongProperty = this.getFirstProperty(errors);
+    const error = this.error.errors[wrongProperty];
 
-    isDuplicateError() {
-        return this.error.code === 11000;
-    }
+    if (error instanceof Error.ValidatorError) {
+      const formattedWrongProperty = this.capitalizeFirstLetter(wrongProperty);
+      if (error.kind === "required") {
+        const errorMessage = `${formattedWrongProperty} is required.`;
+        return errorMessage;
+      }
 
-    isObjectIdError() {
-        return this.error.kind === 'ObjectId';
-    }
+      if (error.kind === "minlength") {
+        const errorMessage = `${formattedWrongProperty} is too short.`;
+        return errorMessage;
+      }
 
-    isValidationError() {
-        return !!this.error.errors || this.isObjectIdError();
+      return error.properties.message;
     }
+  }
 
-    capitalizeFirstLetter(string) {
-        return string.charAt(0).toUpperCase() + string.slice(1);
+  getFirstProperty(obj) {
+    for (const property in obj) {
+      return property;
     }
-}
+  }
+
+  capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  }
+
+  isDuplicateError() {
+    return this.error.code === 11000;
+  }
+};

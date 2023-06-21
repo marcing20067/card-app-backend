@@ -1,6 +1,6 @@
 const messages = require('../messages/messages');
 const jwt = require('jsonwebtoken');
-const throwError = require('../util/throwError');
+const { throwError } = require('../util/throwError');
 
 exports.refresh = (req, res, next) => {
     try {

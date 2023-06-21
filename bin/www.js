@@ -1,5 +1,5 @@
-const app = require('../app.js');
-const debug = require('debug');
+const app = require("../app.js");
+const debug = require("debug");
 
 const normalizePort = (val) => {
   const port = parseInt(val, 10);
@@ -13,13 +13,11 @@ const normalizePort = (val) => {
   }
 
   return false;
-}
+};
+
+const port = normalizePort(process.env.PORT || "3000");
 
 const onListen = () => {
-  const bind = 'http://localhost' + ':3000'
-  debug('Listening on ' + bind);
-}
-
-const port = normalizePort(process.env.PORT || '3000');
+  debug("Listening on " + port);
+};
 app.listen(port, onListen);
-
