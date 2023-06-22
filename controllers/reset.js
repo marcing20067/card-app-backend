@@ -34,13 +34,6 @@ exports.resetPasswordWithToken = async (req, res, next) => {
   const { newPassword } = req.body;
 
   try {
-    if (!token) {
-      // TEST COVERAGE
-      throwError({
-        message: messages.oneTimeToken.invalidData,
-      });
-    }
-
     const foundOneTimeToken = await OneTimeToken.findOne({
       "resetPassword.token": token,
     });
@@ -98,12 +91,6 @@ exports.resetUsernameWithToken = async (req, res, next) => {
   const { newUsername } = req.body;
 
   try {
-    if (!token) {
-      throwError({
-        message: messages.oneTimeToken.invalidData,
-      });
-    }
-
     const foundOneTimeToken = await OneTimeToken.findOne({
       "resetUsername.token": token,
     });

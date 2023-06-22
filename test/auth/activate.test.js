@@ -82,8 +82,9 @@ describe("/auth/activate/:token GET", () => {
   });
 
   describe("when request is wrong", () => {
-    it("when token is undefined", async () => {
-      const response = await getActivateRequest(undefined);
+    it("when oneTimeToken is wrong", async () => {
+      const wrongOneTimeToken = "wrongToken";
+      const response = await getActivateRequest(wrongOneTimeToken);
       const contentType = response.headers["content-type"];
       const message = response.body.message;
 
@@ -92,8 +93,8 @@ describe("/auth/activate/:token GET", () => {
       expect(message).toBe("Token does not exist.");
     });
 
-    it("when oneTimeToken is wrong", async () => {
-      const wrongOneTimeToken = "wrongToken";
+    it("when oneTimeToken is undefined", async () => {
+      const wrongOneTimeToken = undefined;
       const response = await getActivateRequest(wrongOneTimeToken);
       const contentType = response.headers["content-type"];
       const message = response.body.message;

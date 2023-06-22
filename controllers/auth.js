@@ -109,24 +109,10 @@ exports.signup = async (req, res, next) => {
 exports.activate = async (req, res, next) => {
   const { token } = req.params;
   try {
-    // TODO: TEST COVERAGE
-    if (!token) {
-      throwError({
-        message: messages.oneTimeToken.invalidData,
-      });
-    }
-
-    const  oneTimeToken = await OneTimeToken.findOne({
+    const oneTimeToken = await OneTimeToken.findOne({
       "activation.token": token,
     });
     if (!oneTimeToken) {
-      throwError({
-        message: messages.oneTimeToken.invalidData,
-      });
-    }
-
-    if (oneTimeToken.activation.token !== token) {
-    // TODO: TEST COVERAGE
       throwError({
         message: messages.oneTimeToken.invalidData,
       });

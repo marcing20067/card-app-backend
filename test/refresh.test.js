@@ -61,5 +61,16 @@ describe("/refresh GET", () => {
       expect(response.statusCode).toBe(400);
       expect(message).toBe("Invalid refresh token.");
     });
+
+    it("when payload is undefined", async () => {
+      jsonwebtoken.verify.mockReturnValueOnce(undefined);
+      const response = await refreshRequest({
+        cookie: "refreshToken=dummy",
+      });
+      const message = response.body.message;
+
+      expect(response.statusCode).toBe(400);
+      expect(message).toBe("Invalid refresh token.");
+    });
   });
 });

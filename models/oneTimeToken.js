@@ -85,13 +85,7 @@ OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
     to: owner.email,
     subject: subject,
     html: html,
-  })
-    .then((x) => {
-      console.log(x);
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  });
 };
 
 exports.OneTimeToken = mongoose.model("OneTimeToken", OneTimeTokenSchema);

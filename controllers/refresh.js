@@ -11,7 +11,6 @@ exports.refresh = (req, res, next) => {
 
     const payload = jwt.verify(refreshToken, process.env.REFRESH_TOKEN);
     if (!payload) {
-      // TODO: TEST COVERAGE
       throwError({
         message: messages.jwtToken.invalidRefreshToken,
       });

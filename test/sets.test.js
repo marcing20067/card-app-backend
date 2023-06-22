@@ -101,6 +101,17 @@ describe("/sets/:id GET", () => {
       expect(response.status).toBe(400);
       expect(message).toBe("Invalid request data.");
     });
+
+    it("request with wrong set id but ObjectId", async () => {
+      const wrongSetId = "1249b4ddd2781d08c09890f3";
+      const response = await getSetRequest(wrongSetId);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
+    });
   });
 });
 
@@ -195,6 +206,20 @@ describe("/sets/:id PUT", () => {
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
       expect(message).toBe("Stats is required.");
+    });
+
+    it("when set name is taken", async () => {
+      const set = await createSet();
+      const set2 = await createSet({ name: set.name + "two" });
+      
+      const newSet = { ...set, name: set2.name };
+      const response = await putSetRequest(set._id, newSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(409);
+      expect(message).toBe("Name is already taken.");
     });
   });
 });

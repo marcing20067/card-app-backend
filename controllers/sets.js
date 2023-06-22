@@ -26,7 +26,6 @@ exports.getSet = async (req, res, next) => {
   try {
     const foundSet = await Set.findOne({ _id: setId, creator: userId });
     if (!foundSet) {
-      // TODO: TEST COVERAGE
       throwError();
     }
     res.send(foundSet);
@@ -79,7 +78,6 @@ exports.updateSet = async (req, res, next) => {
       });
 
       if (setWithTakenName) {
-        // TODO: TEST COVERAGE
         throwError({
           status: 409,
           message: messages.sets.nameTaken,
