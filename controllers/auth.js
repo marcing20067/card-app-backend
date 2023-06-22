@@ -1,9 +1,9 @@
-const User = require("../models/user");
+const { User } = require("../models/user");
 const { MongoError } = require("../util/mongoError");
-const messages = require("../messages/messages");
+const { messages } = require("../messages/messages");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const OneTimeToken = require("../models/oneTimeToken");
+const { OneTimeToken } = require("../models/oneTimeToken");
 const { throwError } = require("../util/throwError");
 
 exports.login = async (req, res, next) => {
@@ -11,24 +11,24 @@ exports.login = async (req, res, next) => {
   const rememberMe = req.query.rememberMe || "false";
 
   try {
-    const findedUser = await User.findOne({
+    const foundUser = await User.findOne({
       username: username,
       isActivated: true,
     });
-    if (!findedUser) {
+    if (!foundUser) {
       throwError({
         message: messages.user.invalidData,
       });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, findedUser.password);
+    const isPasswordValid = await bcrypt.compare(password, foundUser.password);
     if (!isPasswordValid) {
       throwError({
         message: messages.user.invalidData,
       });
     }
     const payload = {
-      id: findedUser._id,
+      _id: foundUser._id,
     };
     const accessToken = jwt.sign(payload, process.env.ACCESS_TOKEN, {
       expiresIn: process.env.ACCESS_TOKEN_EXPIRES_IN_MILISECONDS,
@@ -89,8 +89,7 @@ exports.signup = async (req, res, next) => {
     const createdUser = await newUser.save({ validateBeforeSave: false });
     const newOneTimeToken = new OneTimeToken({ creator: createdUser._id });
     const createdOneTimeToken = await newOneTimeToken.save();
-
-    createdOneTimeToken.sendEmailWithToken("activation");
+    await createdOneTimeToken.sendEmailWithToken("activation");
     res
       .status(201)
       .send({ message: messages.oneTimeToken.newTokenHasBeenCreated });
@@ -110,32 +109,50 @@ exports.signup = async (req, res, next) => {
 exports.activate = async (req, res, next) => {
   const { token } = req.params;
   try {
-    if (token === "0") {
+    // TODO: TEST COVERAGE
+    if (!token) {
       throwError({
         message: messages.oneTimeToken.invalidData,
       });
     }
 
-    const findedOneTimeToken = await OneTimeToken.findOne({
+    const  oneTimeToken = await OneTimeToken.findOne({
       "activation.token": token,
     });
-    if (!findedOneTimeToken) {
+    if (!oneTimeToken) {
       throwError({
         message: messages.oneTimeToken.invalidData,
       });
     }
 
-    const oneTimeTokenHasExpired =
-      findedOneTimeToken.hasTokenExpired("activation");
+    if (oneTimeToken.activation.token !== token) {
+    // TODO: TEST COVERAGE
+      throwError({
+        message: messages.oneTimeToken.invalidData,
+      });
+    }
+
+    const user = await User.findOne({
+      _id: oneTimeToken.creator,
+      isActivated: false,
+    });
+
+    if (!user) {
+      throwError({
+        message: messages.global.invalidData,
+      });
+    }
+
+    const oneTimeTokenHasExpired = oneTimeToken.hasTokenExpired("activation");
     if (oneTimeTokenHasExpired) {
-      const updatedOneTimeToken = await findedOneTimeToken.makeValid();
+      const updatedOneTimeToken = await oneTimeToken.makeValid("activation");
       updatedOneTimeToken.sendEmailWithToken("activation");
       res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated });
     }
 
     if (!oneTimeTokenHasExpired) {
       await User.updateOne(
-        { _id: findedOneTimeToken.creator },
+        { _id: oneTimeToken.creator },
         {
           $set: {
             isActivated: true,
@@ -143,16 +160,16 @@ exports.activate = async (req, res, next) => {
         }
       );
       await OneTimeToken.updateOne(
-        { _id: findedOneTimeToken._id },
+        { _id: oneTimeToken._id },
         {
           $set: {
-            activation: {
-              token: "0",
-            },
+            activation: null,
           },
         }
       );
-      res.send({ message: messages.oneTimeToken.tokenHasBeenUsedSuccessfully });
+      res.send({
+        message: messages.oneTimeToken.tokenHasBeenUsedSuccessfully,
+      });
     }
   } catch (err) {
     next(err);
@@ -160,7 +177,7 @@ exports.activate = async (req, res, next) => {
 };
 
 exports.getStatus = async (req, res, next) => {
-  const userId = req.userData.id;
+  const userId = req.userData._id;
   try {
     const user = await User.findOne({ _id: userId });
     if (!user) {

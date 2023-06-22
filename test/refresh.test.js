@@ -1,7 +1,7 @@
 jest.mock("jsonwebtoken", () => {
   const { JWT_MOCK_USER_ID } = require("./helpers/mocks");
   return {
-    verify: jest.fn().mockReturnValue({ id: JWT_MOCK_USER_ID }),
+    verify: jest.fn().mockReturnValue({ _id: JWT_MOCK_USER_ID }),
     sign: jest.fn().mockReturnValue("token"),
   };
 });
@@ -9,6 +9,7 @@ jest.mock("jsonwebtoken", () => {
 const app = require("../app");
 const { clearChanges, closeConnection } = require("./helpers/db");
 const { makeHttpRequest } = require("./helpers/requests");
+const jsonwebtoken = require("jsonwebtoken");
 
 afterEach(clearChanges);
 afterAll(closeConnection);
@@ -37,9 +38,27 @@ describe("/refresh GET", () => {
   describe("when request is invalid", () => {
     it("when refresh token doesn't exist", async () => {
       const response = await refreshRequest();
-      const message = response.body.error;
+      const message = response.body.message;
 
       expect(response.status).toBe(200);
+      expect(message).toBe("Invalid refresh token.");
+    });
+
+    it("when jwt verify throws error ", async () => {
+      jsonwebtoken.verify.mockImplementationOnce(() => {
+        throw {
+          name: "TokenExpiredError",
+          message: "jwt expired",
+          expiredAt: new Date("0001-01-01"),
+        };
+      });
+
+      const response = await refreshRequest({
+        cookie: "refreshToken=dummy",
+      });
+      const message = response.body.message;
+
+      expect(response.statusCode).toBe(400);
       expect(message).toBe("Invalid refresh token.");
     });
   });

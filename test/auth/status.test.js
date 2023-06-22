@@ -1,7 +1,7 @@
 jest.mock("jsonwebtoken", () => {
   const { JWT_MOCK_USER_ID } = require("../helpers/mocks");
   return {
-    verify: jest.fn().mockReturnValue({ id: JWT_MOCK_USER_ID }),
+    verify: jest.fn().mockReturnValue({ _id: JWT_MOCK_USER_ID }),
   };
 });
 

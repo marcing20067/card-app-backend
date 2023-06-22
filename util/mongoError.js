@@ -1,5 +1,5 @@
 const { Error } = require("mongoose");
-const messages = require("../messages/messages");
+const { messages } = require("../messages/messages");
 
 exports.MongoError = class MongoError {
   constructor(error) {

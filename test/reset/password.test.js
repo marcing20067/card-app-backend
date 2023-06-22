@@ -5,7 +5,7 @@ jest.mock("nodemailer", () => ({
 }));
 
 const app = require("../../app");
-const OneTimeToken = require("../../models/oneTimeToken");
+const { OneTimeToken } = require("../../models/oneTimeToken");
 const { makeHttpRequest } = require("../helpers/requests");
 const { createUser, createOneTimeToken } = require("../helpers/mocks");
 const { clearChanges, closeConnection } = require("../helpers/db");
@@ -37,22 +37,23 @@ describe("/resetPassword POST", () => {
     expect(response.status).toBe(200);
     expect(message).toBe("Check your email.");
 
-    const findedOneTimeToken = await OneTimeToken.findOne({
+    const foundOneTimeToken = await OneTimeToken.findOne({
       creator: user._id,
     });
-    expect(findedOneTimeToken).not.toEqual(oneTimeToken);
+    expect(foundOneTimeToken.resetPassword).not.toEqual(
+      oneTimeToken.resetPassword
+    );
   });
 
   describe("when request is wrong", () => {
     it("when username is wrong", async () => {
       const wrongUsername = "";
       const response = await resetPasswordRequest(wrongUsername);
-
-      const contentType = response.headers["content-type"];
-      expect(/json/.test(contentType));
-
-      expect(response.status).toBe(400);
       const message = response.body.message;
+      const contentType = response.headers["content-type"];
+      
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
       expect(message).toBe("User does not exist.");
     });
   });
@@ -88,10 +89,10 @@ describe("/resetPassword/:oneTimeToken PUT", () => {
     expect(response.status).toBe(200);
     expect(message).toBe("Password has been changed successfully.");
 
-    const findedOneTimeToken = await OneTimeToken.findOne({
+    const foundOneTimeToken = await OneTimeToken.findOne({
       _id: oneTimeToken._id,
     });
-    expect(findedOneTimeToken.resetPassword.token).toBe("0");
+    expect(foundOneTimeToken.resetPassword).toBe(null);
   });
 
   describe("when request is wrong", () => {
@@ -109,7 +110,7 @@ describe("/resetPassword/:oneTimeToken PUT", () => {
 
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
-      expect(message).toBe("Invalid request data.");
+      expect(message).toBe("Token does not exist.");
     });
   });
 });

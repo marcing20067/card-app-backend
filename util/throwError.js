@@ -1,4 +1,4 @@
-const messages = require("../messages/messages");
+const{ messages } = require("../messages/messages");
 
 exports.throwError = (data = {}) => {
   const err = new Error(data.message);

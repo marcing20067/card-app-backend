@@ -5,8 +5,8 @@ jest.mock("nodemailer", () => ({
 }));
 
 const app = require("../../app");
-const User = require("../../models/user");
-const OneTimeToken = require("../../models/oneTimeToken");
+const { User } = require("../../models/user");
+const { OneTimeToken } = require("../../models/oneTimeToken");
 const { clearChanges, closeConnection } = require("../helpers/db");
 const { createUser, userObj } = require("../helpers/mocks");
 const { makeHttpRequest } = require("../helpers/requests");
@@ -32,13 +32,13 @@ describe("/signup POST", () => {
     expect(response.status).toBe(201);
     expect(message).toBe("Check your email.");
 
-    const findedUser = await User.findOne({ username: userObj.username });
-    expect(findedUser).not.toBe(null);
+    const foundUser = await User.findOne({ username: userObj.username });
+    expect(foundUser).not.toBe(null);
 
-    const findedOneTimeToken = await OneTimeToken.findOne({
-      creator: findedUser._id,
+    const foundOneTimeToken = await OneTimeToken.findOne({
+      creator: foundUser._id,
     });
-    expect(findedOneTimeToken).not.toBe(null);
+    expect(foundOneTimeToken).not.toBe(null);
   });
 
   describe("when request is invalid", () => {

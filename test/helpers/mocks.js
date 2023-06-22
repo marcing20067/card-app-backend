@@ -1,8 +1,21 @@
-const OneTimeToken = require("../../models/oneTimeToken");
-const Set = require("../../models/set");
-const User = require("../../models/user");
+const { OneTimeToken } = require("../../models/oneTimeToken");
+const { Set } = require("../../models/set");
+const { User } = require("../../models/user");
 const JWT_MOCK_USER_ID = "5349b4ddd2781d08c09890f3";
-
+const oneTimeTokenObj = {
+  activation: {
+    endOfValidity: Date.now() + 1000000,
+    token: "token",
+  },
+  resetPassword: {
+    endOfValidity: Date.now() + 1000000,
+    token: "token",
+  },
+  resetUsername: {
+    endOfValidity: Date.now() + 1000000,
+    token: "token",
+  },
+};
 const userObj = {
   username: "admin",
   password: "password",
@@ -11,6 +24,7 @@ const userObj = {
 };
 
 const userObj2 = {
+  _id: "5349b4ddd2781d08c09890f2",
   username: "adminSecond",
   password: "password2",
   email: "email2@mail.pl",
@@ -56,8 +70,9 @@ const createUser = async (customData = {}) => {
   return createdUser._doc;
 };
 
-const   createOneTimeToken = async (customData = {}) => {
+const createOneTimeToken = async (customData = {}) => {
   const oneTimeToken = new OneTimeToken({
+    ...oneTimeTokenObj,
     creator: JWT_MOCK_USER_ID,
     ...customData,
   });
@@ -72,5 +87,5 @@ module.exports = {
   JWT_MOCK_USER_ID,
   createSet,
   createUser,
-  createOneTimeToken
+  createOneTimeToken,
 };

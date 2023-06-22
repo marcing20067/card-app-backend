@@ -38,7 +38,7 @@ const basicMjml = (href, action) => `
 `
 
 
-module.exports = {
+exports.getMailData = {
     html: {
         activation: (link) => {
             const mjmlTemplate = basicMjml(link, 'aktywować konto');

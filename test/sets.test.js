@@ -3,14 +3,14 @@ const { setObj, createSet } = require("./helpers/mocks");
 jest.mock("jsonwebtoken", () => {
   const { JWT_MOCK_USER_ID } = require("./helpers/mocks");
   return {
-    verify: jest.fn().mockReturnValue({ id: JWT_MOCK_USER_ID }),
+    verify: jest.fn().mockReturnValue({ _id: JWT_MOCK_USER_ID }),
   };
 });
 
 const app = require("../app");
 const { clearChanges, closeConnection } = require("./helpers/db");
 const { makeHttpRequest } = require("./helpers/requests");
-const Set = require("../models/set");
+const { Set } = require("../models/set");
 
 afterEach(clearChanges);
 afterAll(closeConnection);
@@ -132,8 +132,8 @@ describe("/sets/:id PUT", () => {
       stats: expect.any(Object),
     });
 
-    const findedSet = await Set.findOne({ name: "edited!", _id: createdSet });
-    expect(findedSet).not.toBe(null);
+    const foundSet = await Set.findOne({ name: "edited!", _id: createdSet });
+    expect(foundSet).not.toBe(null);
   });
 
   describe("when request is wrong", () => {
@@ -255,8 +255,8 @@ describe("/sets POST", () => {
       creator: expect.any(String),
     });
 
-    const findedSet = await Set.findOne({ _id: createdSetId });
-    expect(findedSet).not.toBe(null);
+    const foundSet = await Set.findOne({ _id: createdSetId });
+    expect(foundSet).not.toBe(null);
   });
 
   describe("when request is wrong", () => {

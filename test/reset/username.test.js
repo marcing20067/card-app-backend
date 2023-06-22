@@ -5,11 +5,15 @@ jest.mock("nodemailer", () => ({
 }));
 
 const app = require("../../app");
-const OneTimeToken = require("../../models/oneTimeToken");
-const User = require("../../models/user");
+const { OneTimeToken } = require("../../models/oneTimeToken");
+const { User } = require("../../models/user");
 
 const { clearChanges, closeConnection } = require("../helpers/db");
-const { createOneTimeToken, createUser } = require("../helpers/mocks");
+const {
+  createOneTimeToken,
+  createUser,
+  userObj2,
+} = require("../helpers/mocks");
 const { makeHttpRequest } = require("../helpers/requests");
 
 afterEach(clearChanges);
@@ -38,10 +42,12 @@ describe("/resetUsername POST", () => {
     expect(response.status).toBe(200);
     expect(message).toBe("Check your email.");
 
-    const findedOneTimeToken = await OneTimeToken.findOne({
+    const foundOneTimeToken = await OneTimeToken.findOne({
       creator: user._id,
     });
-    expect(findedOneTimeToken).not.toEqual(oneTimeToken);
+    expect(foundOneTimeToken.resetUsername).not.toEqual(
+      oneTimeToken.resetUsername
+    );
   });
 
   describe("when request is wrong", () => {
@@ -87,13 +93,13 @@ describe("/resetUsername/:oneTimeToken PUT", () => {
     expect(response.status).toBe(200);
     expect(message).toBe("Username has been changed successfully.");
 
-    const findedUser = await User.findOne({ _id: user._id });
-    expect(findedUser.username).toBe(user.username + "random");
+    const foundUser = await User.findOne({ _id: user._id });
+    expect(foundUser.username).toBe(user.username + "random");
 
-    const findedOneTimeToken = await OneTimeToken.findOne({
+    const foundOneTimeToken = await OneTimeToken.findOne({
       _id: oneTimeToken._id,
     });
-    expect(findedOneTimeToken.resetUsername.token).toBe("0");
+    expect(foundOneTimeToken.resetUsername).toBe(null);
   });
 
   describe("when request is wrong", () => {
@@ -113,6 +119,27 @@ describe("/resetUsername/:oneTimeToken PUT", () => {
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
       expect(message).toBe("Invalid request data.");
+    });
+
+    it("when newUsername is alreadytaken", async () => {
+      await createUser();
+      const oneTimeToken = await createOneTimeToken();
+      const two = await createUser(userObj2);
+      const response = await resetUsernameWithTokenRequest(
+        oneTimeToken.resetUsername.token,
+        {
+          data: {
+            newUsername: two.username,
+          },
+        }
+      );
+
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(409);
+      expect(message).toBe("Username is already taken.");
     });
   });
 });

@@ -1,34 +1,35 @@
-const Set = require("../models/set");
+const { Set } = require("../models/set");
 const { MongoError } = require("../util/mongoError");
 const { throwError } = require("../util/throwError");
-const messages = require("../messages/messages");
+const { messages } = require("../messages/messages");
 
 exports.getSets = async (req, res, next) => {
   const page = +req.query.page || 1;
   const itemsPerPage = +req.query.items || 5;
-  const userId = req.userData.id;
+  const userId = req.userData._id;
   const fields = req.query.fields || "";
   try {
-    const findedSets = await Set.find({ creator: userId })
+    const foundSets = await Set.find({ creator: userId })
       .skip(itemsPerPage * (page - 1))
       .limit(itemsPerPage)
       .select(fields);
-    res.send(findedSets);
+    res.send(foundSets);
   } catch (err) {
     next(err);
   }
 };
 
 exports.getSet = async (req, res, next) => {
-  const userId = req.userData.id;
+  const userId = req.userData._id;
   const setId = req.params.setId;
 
   try {
-    const findedSet = await Set.findOne({ _id: setId, creator: userId });
-    if (!findedSet) {
+    const foundSet = await Set.findOne({ _id: setId, creator: userId });
+    if (!foundSet) {
+      // TODO: TEST COVERAGE
       throwError();
     }
-    res.send(findedSet);
+    res.send(foundSet);
   } catch (err) {
     const mongoError = new MongoError(err);
     const message = mongoError.getMessage();
@@ -42,7 +43,7 @@ exports.getSet = async (req, res, next) => {
 };
 
 exports.deleteSet = async (req, res, next) => {
-  const userId = req.userData.id;
+  const userId = req.userData._id;
   const setId = req.params.setId;
   try {
     await Set.deleteOne({ _id: setId, creator: userId });
@@ -59,7 +60,7 @@ exports.deleteSet = async (req, res, next) => {
 };
 
 exports.updateSet = async (req, res, next) => {
-  const userId = req.userData.id;
+  const userId = req.userData._id;
   const setId = req.params.setId;
 
   const newSet = {
@@ -78,13 +79,15 @@ exports.updateSet = async (req, res, next) => {
       });
 
       if (setWithTakenName) {
+        // TODO: TEST COVERAGE
         throwError({
           status: 409,
           message: messages.sets.nameTaken,
         });
       }
     }
-    const updateData = await Set.updateOne(
+
+    await Set.updateOne(
       { _id: setId, creator: userId },
       { $set: newSet },
       { runValidators: true }
@@ -103,7 +106,7 @@ exports.updateSet = async (req, res, next) => {
 };
 
 exports.addSet = async (req, res, next) => {
-  const userId = req.userData.id;
+  const userId = req.userData._id;
   const set = {
     name: req.body.name,
     cards: req.body.cards,

@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const crypto = require("crypto");
-const User = require("./user");
-const getMailData = require("../messages/email");
+const { User } = require("./user");
+const { getMailData } = require("../messages/email");
 const { sendMail } = require("../util/email");
 
 const generateTokenData = () => {
@@ -35,16 +35,12 @@ const OneTimeTokenSchema = new Schema(
         token: { type: String, unique: true, required: true },
         endOfValidity: { type: Number, required: true },
       },
-      required: true,
-      default: generateTokenData,
     },
     resetUsername: {
       type: {
         token: { type: String, unique: true, required: true },
         endOfValidity: { type: Number, required: true },
       },
-      required: true,
-      default: generateTokenData,
     },
     activation: {
       type: {
@@ -52,7 +48,6 @@ const OneTimeTokenSchema = new Schema(
         endOfValidity: { type: Number, required: true },
       },
       default: generateTokenData,
-      required: true,
     },
     creator: { type: Schema.Types.ObjectId, required: true, unique: true },
   },
@@ -75,11 +70,6 @@ OneTimeTokenSchema.methods.hasTokenExpired = function (tokenType) {
 };
 
 OneTimeTokenSchema.methods.makeValid = async function (tokenType) {
-  if (!tokenType) {
-    this.resetPassword = generateTokenData();
-    this.resetUsername = generateTokenData();
-    this.activation = generateTokenData();
-  }
   this[tokenType] = generateTokenData();
   const updatedOneTimeToken = await this.save();
   return updatedOneTimeToken;
@@ -104,4 +94,4 @@ OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
     });
 };
 
-module.exports = mongoose.model("OneTimeToken", OneTimeTokenSchema);
+exports.OneTimeToken = mongoose.model("OneTimeToken", OneTimeTokenSchema);
