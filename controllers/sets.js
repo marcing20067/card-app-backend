@@ -59,22 +59,20 @@ exports.deleteSet = async (req, res, next) => {
 };
 
 exports.updateSet = async (req, res, next) => {
-  const userId = req.userData._id;
+  const creator = req.userData._id;
   const setId = req.params.setId;
-
-  const newSet = {
-    name: req.body.name,
-    cards: req.body.cards,
-    stats: req.body.stats,
-    creator: userId,
-  };
+  const { name, cards, stats } = req.body;
 
   try {
-    if (newSet.name && newSet.creator) {
+    if (!name && !cards && !stats) {
+      throwError();
+    }
+
+    if (name) {
       const setWithTakenName = await Set.findOne({
         _id: { $nin: [setId] },
-        name: newSet.name,
-        creator: newSet.creator,
+        name,
+        creator,
       });
 
       if (setWithTakenName) {
@@ -85,8 +83,9 @@ exports.updateSet = async (req, res, next) => {
       }
     }
 
+    const newSet = { name, cards, stats, creator };
     await Set.updateOne(
-      { _id: setId, creator: userId },
+      { _id: setId, creator },
       { $set: newSet },
       { runValidators: true }
     );
@@ -104,19 +103,17 @@ exports.updateSet = async (req, res, next) => {
 };
 
 exports.addSet = async (req, res, next) => {
-  const userId = req.userData._id;
-  const set = {
-    name: req.body.name,
-    cards: req.body.cards,
-    stats: req.body.stats,
-    creator: userId,
-  };
+  const creator = req.userData._id;
+  const { name, cards, stats } = req.body;
 
   try {
-    if (set.name && set.creator) {
+    const newSet = new Set({ name, cards, stats, creator });
+    await newSet.validate();
+
+    if (name) {
       const setWithTakenName = await Set.findOne({
-        name: set.name,
-        creator: set.creator,
+        name,
+        creator,
       });
       if (setWithTakenName) {
         throwError({
@@ -126,8 +123,7 @@ exports.addSet = async (req, res, next) => {
       }
     }
 
-    const newSet = new Set(set);
-    const createdSet = await newSet.save();
+    const createdSet = await newSet.save({ validateBeforeSave: false });
     res.status(201).send(createdSet);
   } catch (err) {
     const mongoError = new MongoError(err);

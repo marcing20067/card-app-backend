@@ -136,7 +136,7 @@ describe("/signup POST", () => {
 
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
-      expect(message).toBe("Invalid request data.");
+      expect(message).toBe("Invalid email format.");
     });
 
     it("when username is already taken", async () => {

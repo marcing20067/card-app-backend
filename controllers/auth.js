@@ -11,8 +11,14 @@ exports.login = async (req, res, next) => {
   const rememberMe = req.query.rememberMe || "false";
 
   try {
+    if (!username || !password) {
+      throwError({
+        message: messages.user.invalidData,
+      });
+    }
+
     const foundUser = await User.findOne({
-      username: username,
+      username,
       isActivated: true,
     });
     if (!foundUser) {
@@ -47,7 +53,7 @@ exports.login = async (req, res, next) => {
     }
 
     res.send({
-      accessToken: accessToken,
+      accessToken,
       accessTokenExpiresIn: +process.env.ACCESS_TOKEN_EXPIRES_IN_MILISECONDS,
     });
   } catch (err) {
@@ -74,9 +80,9 @@ exports.signup = async (req, res, next) => {
 
   try {
     const newUser = new User({
-      username: username,
-      password: password,
-      email: email,
+      username,
+      password,
+      email,
       isActivated: false,
     });
 
@@ -132,7 +138,7 @@ exports.activate = async (req, res, next) => {
     const oneTimeTokenHasExpired = oneTimeToken.hasTokenExpired("activation");
     if (oneTimeTokenHasExpired) {
       const updatedOneTimeToken = await oneTimeToken.makeValid("activation");
-      updatedOneTimeToken.sendEmailWithToken("activation");
+      await updatedOneTimeToken.sendEmailWithToken("activation");
       res.send({ message: messages.oneTimeToken.newTokenHasBeenGenerated });
     }
 

@@ -169,7 +169,7 @@ describe("/sets/:id PUT", () => {
 
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
-      expect(message).toBe("Name is required.");
+      expect(message).toBe("Invalid request data.");
     });
 
     it("when only name is undefined", async () => {

@@ -5,12 +5,10 @@ const { User } = require("./user");
 const { sendMail } = require("../util/email");
 const { email, getEmailHtml } = require("../messages/email");
 
-const generateTokenData = () => {
-  return {
-    token: generateToken(),
-    endOfValidity: generateEndOfValidity(),
-  };
-};
+const generateTokenData = () => ({
+  token: generateToken(),
+  endOfValidity: generateEndOfValidity(),
+});
 
 const generateToken = () => {
   const tokenLength = +process.env.ONE_TIME_TOKEN_LENGTH;
@@ -93,7 +91,7 @@ OneTimeTokenSchema.methods.createEmailData = async function (tokenType) {
 
 OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
   const email = await this.createEmailData(tokenType);
-  sendMail(email)
+  sendMail(email);
 };
 
 exports.OneTimeToken = mongoose.model("OneTimeToken", OneTimeTokenSchema);

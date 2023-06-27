@@ -18,6 +18,7 @@ exports.messages = {
     passwordWasChanged: "Password has been changed successfully.",
     samePassword: "The password is the same as the previous one.",
     logoutSuccessfully: "Logout successfully.",
+    invalidEmailFormat: "Invalid email format."
   },
   jwtToken: {
     invalidRefreshToken: "Invalid refresh token.",

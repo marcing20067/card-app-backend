@@ -7,6 +7,6 @@ router.post('/signup', AuthController.signup);
 router.post('/login', AuthController.login)
 router.get('/activate/:token', AuthController.activate);
 router.get('/status', isAuth, AuthController.getStatus);
-router.get('/logout', AuthController.logout);
+router.get('/logout', isAuth, AuthController.logout);
 
 module.exports = router;

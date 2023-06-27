@@ -47,11 +47,22 @@ describe("/resetPassword POST", () => {
 
   describe("when request is wrong", () => {
     it("when username is wrong", async () => {
-      const wrongUsername = "";
+      const wrongUsername = "wrong";
       const response = await resetPasswordRequest(wrongUsername);
       const message = response.body.message;
       const contentType = response.headers["content-type"];
-      
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
+
+    it("when username is undefined", async () => {
+      const wrongUsername = undefined;
+      const response = await resetPasswordRequest(wrongUsername);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
+
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
       expect(message).toBe("User does not exist.");
@@ -111,6 +122,25 @@ describe("/resetPassword/:oneTimeToken PUT", () => {
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
       expect(message).toBe("Token does not exist.");
+    });
+
+    it("when newPassword is undefined", async () => {
+      await createUser();
+      const oneTimeToken = await createOneTimeToken();
+      const response = await resetPasswordWithTokenRequest(
+        oneTimeToken.resetPassword.token,
+        {
+          data: {
+            newPassword: undefined,
+          },
+        }
+      );
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
     });
   });
 });

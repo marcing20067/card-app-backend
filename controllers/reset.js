@@ -8,8 +8,13 @@ exports.resetPassword = async (req, res, next) => {
   const { username } = req.body;
 
   try {
+    if (!username) {
+      throwError({
+        message: messages.user.invalidData,
+      });
+    }
     const foundUser = await User.findOne({
-      username: username,
+      username,
       isActivated: true,
     });
     if (!foundUser) {
@@ -34,6 +39,12 @@ exports.resetPasswordWithToken = async (req, res, next) => {
   const { newPassword } = req.body;
 
   try {
+    if (!newPassword) {
+      throwError({
+        message: messages.global.invalidData,
+      });
+    }
+
     const foundOneTimeToken = await OneTimeToken.findOne({
       "resetPassword.token": token,
     });
@@ -68,6 +79,12 @@ exports.resetPasswordWithToken = async (req, res, next) => {
 exports.resetUsername = async (req, res, next) => {
   const { username } = req.body;
   try {
+    if (!username) {
+      throwError({
+        message: messages.user.invalidData,
+      });
+    }
+
     const foundUser = await User.findOne({ username, isActivated: true });
     if (!foundUser) {
       throwError({
@@ -91,6 +108,11 @@ exports.resetUsernameWithToken = async (req, res, next) => {
   const { newUsername } = req.body;
 
   try {
+    // TODO: COVERAGE
+    if (!newUsername) {
+      throwError();
+    }
+
     const foundOneTimeToken = await OneTimeToken.findOne({
       "resetUsername.token": token,
     });

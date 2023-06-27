@@ -52,7 +52,18 @@ describe("/resetUsername POST", () => {
 
   describe("when request is wrong", () => {
     it("when username is wrong", async () => {
-      const wrongUsername = "";
+      const wrongUsername = "wrong";
+      const response = await resetUsernameRequest(wrongUsername);
+      const message = response.body.message;
+      const contentType = response.headers["content-type"];
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("User does not exist.");
+    });
+
+    it("when username is undefined", async () => {
+      const wrongUsername = undefined;
       const response = await resetUsernameRequest(wrongUsername);
       const message = response.body.message;
       const contentType = response.headers["content-type"];
@@ -140,6 +151,27 @@ describe("/resetUsername/:oneTimeToken PUT", () => {
       expect(/json/.test(contentType));
       expect(response.status).toBe(409);
       expect(message).toBe("Username is already taken.");
+    });
+
+    
+    it("when newUsername is undefined", async () => {
+      await createUser();
+      const oneTimeToken = await createOneTimeToken();
+      const response = await resetUsernameWithTokenRequest(
+        oneTimeToken.resetUsername.token,
+        {
+          data: {
+            newUsername: undefined,
+          },
+        }
+      );
+
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Invalid request data.");
     });
   });
 });
