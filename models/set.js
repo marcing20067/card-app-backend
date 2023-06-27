@@ -16,23 +16,31 @@ const SetSchema = new Schema(
       ],
       validate: {
         validator: (cards) => {
-          let isDuplicateCard = false;
-          cards.forEach((el, i) => {
-            const cardsWithDefinition = cards.filter(
-              (c) => c.concept === el.concept
-            );
-            isDuplicateCard = cardsWithDefinition.length >= 2;
-            if (isDuplicateCard) {
-              cards.length = i + 1;
-            }
-          });
+          let duplicateIndex = 0;
 
-          return !isDuplicateCard;
+          for (const card1 of cards) {
+            let duplicatesCount = 0;
+
+            for (const card2 of cards) {
+              if (card1.concept === card2.concept) {
+                duplicatesCount++;
+              }
+
+              if (duplicatesCount >= 2) {
+                cards.length = duplicateIndex + 1;
+                return false;
+              }
+            }
+
+            duplicateIndex++;
+          }
+
+          return true;
         },
         message: (props) => {
           const cards = props.value;
-          const invalidSet = cards[cards.length - 1];
-          return `Concept "${invalidSet.concept}" is duplicated.`;
+          const invalidCard = cards[cards.length - 1];
+          return `Concept "${invalidCard.concept}" is duplicated.`;
         },
       },
       required: true,

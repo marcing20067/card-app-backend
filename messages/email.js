@@ -1,6 +1,6 @@
-const mjml2html = require('mjml');
-
-const basicMjml = (href, action) => `
+const mjml2html = require("mjml");
+exports.getEmailHtml = (href, tokenType) =>
+  mjml2html(`
 <mjml>
     <mj-head>
       <mj-font name="Roboto" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700"></mj-font>
@@ -22,7 +22,7 @@ const basicMjml = (href, action) => `
           <mj-text font-size="36px" font-weight="700" color="#ffad60">Poliglot</mj-text>
   
           <mj-text css-class="link"><a href="${href}" target="_blank" rel="noopener">
-              Kliknij tutaj, aby ${ action }!
+              Kliknij tutaj, aby ${email.text[tokenType]}!
             </a></mj-text>
           <mj-spacer height="8px"></mj-spacer>
           <mj-spacer height="1px" container-background-color="#000000"></mj-spacer>
@@ -35,27 +35,19 @@ const basicMjml = (href, action) => `
       </mj-section>
     </mj-body>
   </mjml>
-`
+`).html;
 
+const email = {
+  text: {
+    activation: "aktywować konto",
+    resetPassword: "zresetować hasło",
+    resetUsername: "zresetować nazwę użytkownika",
+  },
+  subject: {
+    activation: "Poliglot | Aktywuj konto",
+    resetPassword: "Poliglot | Zresetuj hasło",
+    resetUsername: "Poliglot | Zresetuj nazwę użytkownika",
+  },
+};
 
-exports.getMailData = {
-    html: {
-        activation: (link) => {
-            const mjmlTemplate = basicMjml(link, 'aktywować konto');
-            return mjml2html(mjmlTemplate);
-        },
-        resetPassword: (link) => {
-            const mjmlTemplate = basicMjml(link, 'zresetować hasło');
-            return mjml2html(mjmlTemplate);
-        },
-        resetUsername: (link) => {
-            const mjmlTemplate = basicMjml(link, 'zresetować nazwę użytkownika');
-            return mjml2html(mjmlTemplate);
-        }
-    },
-    subject: {
-        activation: 'Poliglot | Aktywuj konto',
-        resetPassword: 'Poliglot | Zresetuj hasło',
-        resetUsername: 'Poliglot | Zresetuj nazwę użytkownika',
-    }
-}
+exports.email = email;

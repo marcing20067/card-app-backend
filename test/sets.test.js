@@ -292,17 +292,17 @@ describe("/sets POST", () => {
           {
             definition: "definition",
             concept: "duplicate",
-            group: 0,
+            group: 1,
           },
           {
             definition: "definition",
             concept: "duplicate",
-            group: 0,
+            group: 1,
           },
           {
             definition: "definition",
             concept: "noduplicate",
-            group: 0,
+            group: 1,
           },
         ],
       });

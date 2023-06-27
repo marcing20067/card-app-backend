@@ -2,8 +2,8 @@ const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const crypto = require("crypto");
 const { User } = require("./user");
-const { getMailData } = require("../messages/email");
 const { sendMail } = require("../util/email");
+const { email, getEmailHtml } = require("../messages/email");
 
 const generateTokenData = () => {
   return {
@@ -32,19 +32,19 @@ const OneTimeTokenSchema = new Schema(
   {
     resetPassword: {
       type: {
-        token: { type: String, unique: true, required: true },
+        token: { type: String, unique: true, sparse: true, required: true },
         endOfValidity: { type: Number, required: true },
       },
     },
     resetUsername: {
       type: {
-        token: { type: String, unique: true, required: true },
+        token: { type: String, unique: true, sparse: true, required: true },
         endOfValidity: { type: Number, required: true },
       },
     },
     activation: {
       type: {
-        token: { type: String, unique: true, required: true },
+        token: { type: String, unique: true, sparse: true, required: true },
         endOfValidity: { type: Number, required: true },
       },
       default: generateTokenData,
@@ -53,16 +53,6 @@ const OneTimeTokenSchema = new Schema(
   },
   { versionKey: false }
 );
-
-OneTimeTokenSchema.methods.createUrl = function (tokenType) {
-  const frontendUrl = process.env.FRONTEND_URL;
-  const token = this[tokenType].token;
-  if (tokenType.includes("Username") || tokenType.includes("Password")) {
-    const correctTokenType = tokenType.replace("U", "/u").replace("P", "/p");
-    return `${frontendUrl}/${correctTokenType}/${token}`;
-  }
-  return `${frontendUrl}/auth/${tokenType}/${token}`;
-};
 
 OneTimeTokenSchema.methods.hasTokenExpired = function (tokenType) {
   const now = Date.now();
@@ -75,17 +65,35 @@ OneTimeTokenSchema.methods.makeValid = async function (tokenType) {
   return updatedOneTimeToken;
 };
 
-OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
-  const url = this.createUrl(tokenType);
+OneTimeTokenSchema.methods.createLink = function (tokenType) {
+  const frontendUrl = process.env.FRONTEND_URL;
+  let endpoint = tokenType.toLowerCase().replace("reset", "");
+  endpoint =
+    endpoint === "activation" ? "auth/" + endpoint : "reset/" + endpoint;
+  const token = this[tokenType].token;
+  return `${frontendUrl}/${endpoint}/${token}`;
+};
+
+OneTimeTokenSchema.methods.createEmailData = async function (tokenType) {
   const owner = await User.findOne({ _id: this.creator });
-  const html = getMailData.html[tokenType](url).html;
-  const subject = getMailData.subject[tokenType];
-  sendMail({
-    from: `Poliglot ${process.env.GMAIL}`,
-    to: owner.email,
-    subject: subject,
-    html: html,
-  });
+  const link = this.createLink(tokenType);
+
+  const html = getEmailHtml(link, tokenType);
+  const subject = email.subject[tokenType];
+  const from = `Poliglot ${process.env.GMAIL}`;
+  const to = owner.email;
+
+  return {
+    from,
+    to,
+    subject,
+    html,
+  };
+};
+
+OneTimeTokenSchema.methods.sendEmailWithToken = async function (tokenType) {
+  const email = await this.createEmailData(tokenType);
+  sendMail(email)
 };
 
 exports.OneTimeToken = mongoose.model("OneTimeToken", OneTimeTokenSchema);

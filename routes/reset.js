@@ -10,3 +10,4 @@ router.post('/username', ResetController.resetUsername);
 router.put('/username/:token', ResetController.resetUsernameWithToken);
 
 module.exports = router;
+    
