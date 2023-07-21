@@ -24,15 +24,63 @@ describe("/sets GET", () => {
     });
   };
 
-  it("when request is correct", async () => {
-    const response = await getSetsRequest();
-    const contentType = response.headers["content-type"];
-    const sets = response.body;
+  describe("when request is correct", () => {
+    it("common request", async () => {
+      const response = await getSetsRequest();
+      const contentType = response.headers["content-type"];
+      const sets = response.body;
 
-    expect(/json/.test(contentType));
-    expect(response.status).toBe(200);
-    expect(sets.length).toBe(0);
-    expect(sets).toEqual(expect.any(Array));
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(200);
+      expect(sets.length).toBe(0);
+      expect(sets).toEqual(expect.any(Array));
+    });
+
+    it("when name is wrong", async () => {
+      await createSet({ name: "one" });
+      const set = await createSet({ name: "two" });
+
+      const response = await getSetsRequest({
+        endpoint: "/sets?name=wrong",
+      });
+      const contentType = response.headers["content-type"];
+      const sets = response.body;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(200);
+      expect(sets.length).toBe(0);
+    });
+
+    it("when name is correct", async () => {
+      await createSet({ name: "one" });
+      const set = await createSet({ name: "two" });
+
+      const response = await getSetsRequest({
+        endpoint: "/sets?name=one",
+      });
+      const contentType = response.headers["content-type"];
+      const sets = response.body;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(200);
+      expect(sets.length).toBe(1);
+      expect(sets[0].name).toBe("one");
+    });
+
+    it("when name is empty", async () => {
+      const set = await createSet({ name: "two" });
+
+      const response = await getSetsRequest({
+        endpoint: "/sets?name=",
+      });
+      const contentType = response.headers["content-type"];
+      const sets = response.body;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(200);
+      expect(sets.length).toBe(1);
+      expect(sets[0].name).toBe(set.name);
+    });
   });
 
   describe("pagination tests", () => {
@@ -148,6 +196,24 @@ describe("/sets/:id PUT", () => {
   });
 
   describe("when request is wrong", () => {
+    it("when stats are wrong", async () => {
+      const createdSet = await createSet();
+      const stats = {
+        group1: 1,
+        group2: 0,
+        group3: 1,
+        group5: 1,
+        group4: -30,
+      };
+      const updatedSet = { ...setObj, stats };
+      const response = await putSetRequest(createdSet._id, updatedSet);
+      const contentType = response.headers["content-type"];
+      const message = response.body.message;
+
+      expect(/json/.test(contentType));
+      expect(response.status).toBe(400);
+      expect(message).toBe("Stats.group4 is too small.");
+    });
     it("when set id is wrong", async () => {
       const wrongSetId = "wrongSetId";
       const updatedSet = { ...setObj, name: "edited!" };
@@ -205,13 +271,13 @@ describe("/sets/:id PUT", () => {
 
       expect(/json/.test(contentType));
       expect(response.status).toBe(400);
-      expect(message).toBe("Stats is required.");
+      expect(message).toBe("Stats.group1 is required.");
     });
 
     it("when set name is taken", async () => {
       const set = await createSet();
       const set2 = await createSet({ name: set.name + "two" });
-      
+
       const newSet = { ...set, name: set2.name };
       const response = await putSetRequest(set._id, newSet);
       const contentType = response.headers["content-type"];
@@ -333,7 +399,7 @@ describe("/sets POST", () => {
 
     expect(/json/.test(contentType));
     expect(response.status).toBe(400);
-    expect(message).toBe("Stats is required.");
+    expect(message).toBe("Stats.group5 is required.");
   });
 
   it("when name is too short", async () => {

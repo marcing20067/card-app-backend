@@ -36,6 +36,11 @@ exports.MongoError = class MongoError {
         return errorMessage;
       }
 
+      if(error.kind === "min") {
+        const errorMessage = `${formattedWrongProperty} is too small.`;
+        return errorMessage;
+      }
+
       return error.properties.message;
     }
   }

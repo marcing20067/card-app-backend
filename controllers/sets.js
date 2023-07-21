@@ -8,8 +8,12 @@ exports.getSets = async (req, res, next) => {
   const itemsPerPage = +req.query.items || 5;
   const userId = req.userData._id;
   const fields = req.query.fields || "";
+  const name = req.query.name || "";
   try {
-    const foundSets = await Set.find({ creator: userId })
+    const foundSets = await Set.find({
+      creator: userId,
+      name: name ? { $regex: name } : undefined,
+    })
       .skip(itemsPerPage * (page - 1))
       .limit(itemsPerPage)
       .select(fields);
