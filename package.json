@@ -1,9 +1,9 @@
 {
-  "name": "card-app-backend",
+  "name": "poliglot-backend",
   "version": "0.0.0",
   "scripts": {
     "heroku-prebuild": "bash build.sh",
-    "start": "SET DEBUG=card-app-backend:* & nodemon ./bin/www",
+    "start": "SET DEBUG=poliglot-backend:* & nodemon ./bin/www",
     "start:prod": "node ./bin/www",
     "test": "jest --runInBand",
     "test:coverage": "jest --runInBand --coverage"
