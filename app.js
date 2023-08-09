@@ -1,7 +1,6 @@
-const env = require('dotenv').config({
-    path: 'env/.env'
+require('dotenv').config({
+    path: '/env/.env'
 });
-console.log(env);
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
