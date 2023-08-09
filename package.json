@@ -2,7 +2,7 @@
   "name": "poliglot-backend",
   "version": "0.0.0",
   "scripts": {
-    "heroku-prebuild": "bash build.sh",
+    "build": "bash build.sh",
     "start": "SET DEBUG=poliglot-backend:* & nodemon ./bin/www",
     "start:prod": "node ./bin/www",
     "test": "jest --runInBand",
