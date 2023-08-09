@@ -1,10 +1,9 @@
 
-# Poliglot Frontend
+# Poliglot Backend
 
 Learn faster by using flashcards. All you need to do is spend 10 minutes a day to study systematically.
 
 ![App Screenshot](./github/homepage.png)
-
 
 ## Demo
 
@@ -16,7 +15,7 @@ Learn faster by using flashcards. All you need to do is spend 10 minutes a day t
 
 **Client:** Angular, SCSS, Typescript
 
-[Client repository](https://www.google.com/)
+[Client repository](https://github.com/marcing20067/poliglot-frontend)
   
 
 ## Installation
