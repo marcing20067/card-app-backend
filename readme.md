@@ -1,44 +1,40 @@
-# Poliglot
 
-## Live
+# Poliglot Frontend
 
-[Live](https://poliglot-app.herokuapp.com/home)
+Learn faster by using flashcards. All you need to do is spend 10 minutes a day to study systematically.
 
-## Stack
+![App Screenshot](./github/homepage.png)
 
-- Javascript
-- Nodejs
-- Express
-- Nodemailer(sendgrid) + Mjml,
-- Jest
-- Mongodb
+
+## Demo
+
+[Check out our app in action!](https://www.google.com/)
+
+## Tech Stack
+
+**Server:** Node, Express, MongoDB, Jest, JavaScript
+
+**Client:** Angular, SCSS, Typescript
+
+[Client repository](https://www.google.com/)
+  
 
 ## Installation
 
-```sh
-npm install
+```bash
+  npm install 
 ```
 
-## Usage
 
-```sh
-npm start
-```
+## Testing
 
-## Testing 
-
-```sh
+```bash
 npm run test
 ```
 
-## Build
 
-Get frontend from [repo](https://github.com/marcing20067/poliglot-frontend), install packages, build it and move results to public folder.
+## Usage
 
-```sh
-bash build.sh
+```bash
+ng serve
 ```
-
-## Copyright
-
-- **Code**: Marcin Grądzik
