@@ -5,9 +5,11 @@ Learn faster by using flashcards. All you need to do is spend 10 minutes a day t
 
 ![App Screenshot](./github/homepage.png)
 
+
 ## Demo
 
-[Check out our app in action!](https://poliglot.onrender.com/)
+[Check out our app in action!](https://poliglot.onrender.com/home)
+
 
 ## Tech Stack
 
