@@ -8,7 +8,7 @@ Learn faster by using flashcards. All you need to do is spend 10 minutes a day t
 
 ## Demo
 
-[Check out our app in action!](https://poliglot.onrender.com/home)
+[Check out our app in action!](https://mg.aw3.pl/home)
 
 
 ## Tech Stack
