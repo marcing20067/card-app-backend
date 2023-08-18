@@ -39,3 +39,9 @@ npm run test
 ```bash
 ng serve
 ```
+
+## Copyright
+
+**Code:** Me
+
+**Design:** Aleksandra Mazan
